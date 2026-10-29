@@ -25,6 +25,8 @@ jobs:
 
       - name: Cài đặt pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 11
 
       - name: Cài đặt Node.js 20
         uses: actions/setup-node@v4
@@ -33,7 +35,9 @@ jobs:
           cache: "pnpm"
 
       - name: Cài đặt thư viện dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm approve-builds --all || true
+          pnpm install --no-frozen-lockfile
 
       - name: Build dự án với đường dẫn con của GitHub Pages
         run: pnpm run build
