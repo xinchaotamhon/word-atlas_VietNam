@@ -12,6 +12,9 @@ const PALETTE: [string, number][] = [
 ];
 
 export function shouldShowSplash() {
+  if (typeof window !== "undefined" && (window.innerWidth < 768 || matchMedia("(max-width: 768px)").matches)) {
+    return false;
+  }
   if (!store.get().settings.splash) return false;
   const h = location.hash.replace(/^#\/?/, "");
   if (h && !h.startsWith("?")) return false; // deep links go straight to content
@@ -92,16 +95,27 @@ function targets(w: number, h: number, count: number) {
 }
 
 export function Splash({ onDone }: { onDone: () => void }) {
+  const isMobile = typeof window !== "undefined" && (window.innerWidth < 768 || matchMedia("(max-width: 768px)").matches);
+
+  useEffect(() => {
+    if (isMobile) onDone();
+  }, [isMobile, onDone]);
+
   const canvas = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<"gather" | "ready" | "open">("gather");
   const opening = useRef(false);
   const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
+    if (isMobile) return;
     preloadFiles(["splash-voice.mp3", "splash-door.mp3", "splash-burst.mp3"]);
-    const t = window.setTimeout(() => setPhase((p) => (p === "gather" ? "ready" : p)), reduce ? 300 : 2100);
-    return () => window.clearTimeout(t);
-  }, [reduce]);
+    const t = window.setTimeout(() => setPhase((p) => (p === "gather" ? "ready" : p)), reduce ? 300 : 1200);
+    const autoOpen = window.setTimeout(() => open(false), 3000);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(autoOpen);
+    };
+  }, [reduce, isMobile]);
 
   useEffect(() => {
     const cv = canvas.current;
@@ -236,8 +250,16 @@ export function Splash({ onDone }: { onDone: () => void }) {
     return () => window.removeEventListener("keydown", key);
   }); // eslint-disable-line react-hooks/exhaustive-deps
 
+  if (isMobile) return null;
+
   return (
-    <div className={`splash is-${phase} ${reduce ? "is-reduced" : ""}`} onClick={() => open()} role="dialog" aria-label="Chào mừng bạn đến với Word Atlas, nhấp để bắt đầu">
+    <div
+      className={`splash is-${phase} ${reduce ? "is-reduced" : ""}`}
+      onClick={() => open()}
+      onTouchStart={() => open()}
+      role="dialog"
+      aria-label="Chào mừng bạn đến với Word Atlas, nhấp để bắt đầu"
+    >
       <div className="door door-l" />
       <div className="door door-r" />
       <div className="splash-light" />
