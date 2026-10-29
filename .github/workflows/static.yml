@@ -1,0 +1,57 @@
+name: Deploy Word Atlas to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+# Cấp quyền cho GitHub Actions deploy lên GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Tránh xung đột các đợt build
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Cài đặt Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Cài đặt thư viện dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build dự án với đường dẫn con của GitHub Pages
+        run: pnpm run build
+        env:
+          ATLAS_BASE: /word-atlas_VietNam/
+
+      - name: Upload artifact thư mục dist
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Triển khai lên GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
