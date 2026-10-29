@@ -6,13 +6,13 @@ const BASE = `${import.meta.env.BASE_URL}sfx/`;
 
 export type Cue = "correct" | "wrong" | "flip" | "page" | "complete" | "streak" | "start" | "tap" | "key" | "twinkle" | "fly" | "ignite";
 export const AMBIENCE = [
-  { id: "stars", label: "星空音乐" },
-  { id: "rain", label: "雨天图书馆" },
-  { id: "sea", label: "清晨海岸" },
-  { id: "forest", label: "林间早晨" },
-  { id: "fire", label: "夜晚壁炉" },
-  { id: "voyage", label: "远航船舱" },
-  { id: "cafe", label: "安静咖啡馆" },
+  { id: "stars", label: "Bầu trời sao" },
+  { id: "rain", label: "Thư viện ngày mưa" },
+  { id: "sea", label: "Bờ biển sớm" },
+  { id: "forest", label: "Rừng cây sáng sớm" },
+  { id: "fire", label: "Bếp lửa đêm" },
+  { id: "voyage", label: "Khoang tàu viễn dương" },
+  { id: "cafe", label: "Quán cà phê yên tĩnh" },
 ] as const;
 export type AmbienceId = (typeof AMBIENCE)[number]["id"];
 

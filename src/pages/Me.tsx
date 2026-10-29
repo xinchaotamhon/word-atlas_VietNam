@@ -42,74 +42,74 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   };
   const restore = async (f: File) => {
-    if (f.size > 30 * 1024 * 1024) return toast("文件太大，不像是学习备份。", "warn");
+    if (f.size > 30 * 1024 * 1024) return toast("Tệp quá lớn, không giống bản sao lưu học tập.", "warn");
     const r = importBackup(await f.text());
-    toast(r.ok ? `已恢复 ${r.cards} 个词的记忆` : r.error, r.ok ? "ok" : "warn");
+    toast(r.ok ? `Đã khôi phục ghi nhớ cho ${r.cards} từ` : r.error, r.ok ? "ok" : "warn");
   };
   const maxF = Math.max(1, ...stats.forecast);
 
   return (
     <div className="page me">
       <header className="page-head">
-        <p className="eyebrow">我的</p>
-        <h1 className="display">你的星空</h1>
+        <p className="eyebrow">Cá nhân</p>
+        <h1 className="display">Bầu trời sao của bạn</h1>
       </header>
 
       <section className="stat-strip">
         <div>
-          <dt>连续学习</dt>
+          <dt>Chuỗi liên tục</dt>
           <dd>
             {streakOf(progress.days)}
-            <small>天</small>
+            <small>ngày</small>
           </dd>
         </div>
         <div>
-          <dt>已点亮</dt>
+          <dt>Đã học</dt>
           <dd>{stats.learned.toLocaleString()}</dd>
         </div>
         <div>
-          <dt>长期记住</dt>
+          <dt>Nhớ lâu dài</dt>
           <dd>{stats.mastered.toLocaleString()}</dd>
         </div>
         <div>
-          <dt>首次正确率</dt>
+          <dt>Độ chính xác lần đầu</dt>
           <dd>
             {stats.accuracy}
             <small>%</small>
           </dd>
         </div>
         <div>
-          <dt>学习时长</dt>
+          <dt>Thời gian học</dt>
           <dd>
             {stats.minutes}
-            <small>分钟</small>
+            <small>phút</small>
           </dd>
         </div>
       </section>
 
       <div className="me-grid">
         <section className="panel">
-          <h3 className="eyebrow">过去 20 周</h3>
+          <h3 className="eyebrow">20 tuần qua</h3>
           <Heatmap days={progress.days} />
-          <p className="muted">一格是一天，颜色越深，那天答得越多。「长期记住」指记忆稳定度超过 21 天。</p>
+          <p className="muted">Mỗi ô là một ngày, màu càng đậm làm càng nhiều câu.「Nhớ lâu dài」nghĩa là độ ổn định trí nhớ vượt 21 ngày.</p>
         </section>
 
         <section className="panel">
-          <h3 className="eyebrow">未来 7 天的复习量</h3>
+          <h3 className="eyebrow">Lượng ôn tập 7 ngày tới</h3>
           <ol className="forecast">
             {stats.forecast.map((n, i) => (
               <li key={i}>
                 <span style={{ height: `${(n / maxF) * 100}%` }} />
                 <b>{n}</b>
-                <small>{i === 0 ? "今天" : i === 1 ? "明天" : `+${i}`}</small>
+                <small>{i === 0 ? "Hôm nay" : i === 1 ? "Ngày mai" : `+${i}`}</small>
               </li>
             ))}
           </ol>
         </section>
 
         <section className="panel settings">
-          <h3 className="eyebrow">学习设置</h3>
-          <Field label="每日新词" hint="复习不设上限，算法只安排快要遗忘的词。">
+          <h3 className="eyebrow">Cài đặt học tập</h3>
+          <Field label="Từ mới mỗi ngày" hint="Ôn tập không giới hạn, thuật toán chỉ sắp xếp từ sắp quên.">
             <div className="segmented">
               {[5, 10, 15, 20, 30].map((n) => (
                 <button key={n} className={settings.dailyNew === n ? "is-on" : ""} onClick={() => set({ dailyNew: n })}>
@@ -118,7 +118,7 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
               ))}
             </div>
           </Field>
-          <Field label="从哪个难度开始" hint="跳过已经熟悉的低级别词。">
+          <Field label="Bắt đầu từ độ khó nào" hint="Bỏ qua các từ cấp thấp bạn đã quen thuộc.">
             <div className="segmented">
               {atlas.cefr.map((l, i) => (
                 <button key={l} className={settings.startLevel === i ? "is-on" : ""} onClick={() => set({ startLevel: i })}>
@@ -127,7 +127,7 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
               ))}
             </div>
           </Field>
-          <Field label="目标记忆率" hint="越高复习越频繁。90% 是大多数人的甜点。">
+          <Field label="Tỷ lệ ghi nhớ mục tiêu" hint="Càng cao thì ôn càng thường xuyên. 90% là mức tối ưu cho đa số người học.">
             <div className="segmented">
               {[0.85, 0.9, 0.95].map((n) => (
                 <button key={n} className={settings.retention === n ? "is-on" : ""} onClick={() => set({ retention: n })}>
@@ -136,23 +136,23 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
               ))}
             </div>
           </Field>
-          <Field label="发音">
+          <Field label="Giọng phát âm">
             <div className="segmented">
               <button className={settings.accent === "uk" ? "is-on" : ""} onClick={() => set({ accent: "uk" })}>
-                英式
+                Anh (UK)
               </button>
               <button className={settings.accent === "us" ? "is-on" : ""} onClick={() => set({ accent: "us" })}>
-                美式
+                Mỹ (US)
               </button>
             </div>
           </Field>
-          <Field label="外观">
+          <Field label="Giao diện">
             <div className="segmented">
               {(
                 [
-                  ["system", "跟随系统"],
-                  ["light", "浅色"],
-                  ["dark", "深色"],
+                  ["system", "Theo hệ thống"],
+                  ["light", "Sáng"],
+                  ["dark", "Tối"],
                 ] as const
               ).map(([k, l]) => (
                 <button key={k} className={settings.theme === k ? "is-on" : ""} onClick={() => set({ theme: k })}>
@@ -161,18 +161,18 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
               ))}
             </div>
           </Field>
-          <Toggle label="自动播放发音" on={settings.autoplay} set={(v) => set({ autoplay: v })} />
-          <Toggle label="界面音效" on={settings.sfx} set={(v) => set({ sfx: v })} />
-          <Toggle label="开屏动画（每天一次）" on={settings.splash} set={(v) => set({ splash: v })} />
-          <Toggle label="复习时加入拼写题" on={settings.spell} set={(v) => set({ spell: v })} />
+          <Toggle label="Tự động phát âm" on={settings.autoplay} set={(v) => set({ autoplay: v })} />
+          <Toggle label="Âm thanh thao tác" on={settings.sfx} set={(v) => set({ sfx: v })} />
+          <Toggle label="Hiệu ứng mở đầu (1 lần/ngày)" on={settings.splash} set={(v) => set({ splash: v })} />
+          <Toggle label="Kèm câu hỏi chính tả khi ôn tập" on={settings.spell} set={(v) => set({ spell: v })} />
           {privateAvailable && (
-            <Field label="词库" hint="私人词库只在本机开发服务器中可用，不会被打包发布。">
+            <Field label="Kho từ điển" hint="Kho từ riêng chỉ khả dụng trên máy chủ phát triển cục bộ.">
               <div className="segmented">
                 <button className={settings.dataset === "open" ? "is-on" : ""} onClick={() => set({ dataset: "open" })}>
-                  开放图鉴
+                  Từ điển mở
                 </button>
                 <button className={settings.dataset === "private" ? "is-on" : ""} onClick={() => set({ dataset: "private" })}>
-                  私人 8000
+                  Bộ riêng 8000
                 </button>
               </div>
             </Field>
@@ -180,27 +180,27 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
         </section>
 
         <section className="panel">
-          <h3 className="eyebrow">数据</h3>
-          <p className="muted">进度只存在这台设备的浏览器里：没有账号，没有服务器。换设备时，导出备份再导入即可。</p>
-          {saveError && <p className="warn-text">浏览器拒绝保存（可能是隐私模式或空间已满）。请尽快导出备份。</p>}
+          <h3 className="eyebrow">Dữ liệu</h3>
+          <p className="muted">Tiến độ chỉ lưu trong trình duyệt của thiết bị này: không cần tài khoản, không máy chủ. Khi đổi máy, chỉ cần xuất sao lưu và nhập lại.</p>
+          {saveError && <p className="warn-text">Trình duyệt từ chối lưu (có thể do chế độ ẩn danh hoặc đầy bộ nhớ). Vui lòng sớm xuất sao lưu.</p>}
           <div className="data-actions">
             <button className="btn btn-ghost" onClick={download}>
-              <Download size={18} /> 导出备份
+              <Download size={18} /> Xuất sao lưu
             </button>
             <button className="btn btn-ghost" onClick={() => file.current?.click()}>
-              <Upload size={18} /> 导入备份
+              <Upload size={18} /> Nhập sao lưu
             </button>
             <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && restore(e.target.files[0]).finally(() => (e.target.value = ""))} />
             <button
               className="btn btn-ghost btn-danger"
               onClick={() => {
-                if (confirm("确定清空这个词库的全部学习记录？此操作无法撤销，建议先导出备份。")) {
+                if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử học tập? Thao tác này không thể hoàn tác, bạn nên xuất bản sao lưu trước.")) {
                   resetProgress();
-                  toast("学习记录已清空");
+                  toast("Lịch sử học tập đã được xóa");
                 }
               }}
             >
-              <RotateCcw size={18} /> 清空记录
+              <RotateCcw size={18} /> Xóa lịch sử
             </button>
           </div>
         </section>
@@ -245,9 +245,9 @@ function Heatmap({ days }: { days: Record<string, { r: number }> }) {
   }
   const lvl = (v: number) => (v === 0 ? 0 : v < 10 ? 1 : v < 25 ? 2 : v < 50 ? 3 : 4);
   return (
-    <div className="heatmap" role="img" aria-label="学习热力图">
+    <div className="heatmap" role="img" aria-label="Biểu đồ nhiệt học tập">
       {cells.map((c) => (
-        <span key={c.k} className={`h${c.future ? "x" : lvl(c.v)}`} title={`${c.k} · ${c.v} 题`} />
+        <span key={c.k} className={`h${c.future ? "x" : lvl(c.v)}`} title={`${c.k} · ${c.v} câu`} />
       ))}
     </div>
   );

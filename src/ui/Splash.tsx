@@ -74,7 +74,7 @@ function targets(w: number, h: number, count: number) {
   g.font = `700 ${zh}px "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif`;
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.fillText("词光", cx, cy + R + zh * 0.78);
+  g.fillText("WORD ATLAS", cx, cy + R + zh * 0.78);
   const en = Math.max(18, zh * 0.24);
   g.font = `700 ${en}px "Fraunces Variable", Georgia, serif`;
   g.letterSpacing = `${en * 0.34}px`;
@@ -237,22 +237,22 @@ export function Splash({ onDone }: { onDone: () => void }) {
   }); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={`splash is-${phase} ${reduce ? "is-reduced" : ""}`} onClick={() => open()} role="dialog" aria-label="欢迎打开雅思大门，点击进入">
+    <div className={`splash is-${phase} ${reduce ? "is-reduced" : ""}`} onClick={() => open()} role="dialog" aria-label="Chào mừng bạn đến với Word Atlas, nhấp để bắt đầu">
       <div className="door door-l" />
       <div className="door door-r" />
       <div className="splash-light" />
       <canvas ref={canvas} className="splash-canvas" aria-hidden="true" />
       {reduce && (
         <div className="splash-static">
-          <b>词光</b>
-          <small>WORD ATLAS</small>
+          <b>Word Atlas</b>
+          <small>BẢN ĐỒ TỪ VỰNG</small>
         </div>
       )}
       <div className="splash-copy">
-        <p className="splash-tag">欢迎打开雅思大门</p>
+        <p className="splash-tag">Chào mừng bạn đến với Word Atlas</p>
         <p className="splash-hint">
           <span className="splash-key" />
-          点击开启 · 按任意键
+          Nhấp để mở · Nhấn phím bất kỳ
         </p>
       </div>
       <button
@@ -262,7 +262,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
           open(false);
         }}
       >
-        跳过
+        Bỏ qua
       </button>
     </div>
   );

@@ -13,11 +13,11 @@ import { Speak } from "../ui/Speak";
 
 type Status = "all" | "new" | "learning" | "mastered" | "saved";
 const STATUS: [Status, string][] = [
-  ["all", "全部"],
-  ["new", "未学"],
-  ["learning", "学习中"],
-  ["mastered", "已掌握"],
-  ["saved", "收藏"],
+  ["all", "Tất cả"],
+  ["new", "Chưa học"],
+  ["learning", "Đang học"],
+  ["mastered", "Đã thuộc"],
+  ["saved", "Đã lưu"],
 ];
 
 type View = "grid" | "list" | "galaxy";
@@ -97,14 +97,14 @@ export function AtlasPage({
     <div className={`page atlas ${view === "galaxy" ? "is-galaxy" : ""}`}>
       <header className="atlas-head">
         <div>
-          <p className="eyebrow">图鉴 · {atlas.count.toLocaleString()} 词</p>
+          <p className="eyebrow">Từ điển · {atlas.count.toLocaleString()} từ</p>
           <h1 className="display">
-            每个词，
+            Mỗi một từ,
             <br className="br-sm" />
-            都有一幅画。
+            đều có một bức tranh.
           </h1>
           <p className="lede">
-            {atlas.examples.toLocaleString()} 条原创例句 · 英美发音 · 按难度和 {atlas.topics.length} 个雅思话题整理
+            {atlas.examples.toLocaleString()} câu ví dụ nguyên bản · Phát âm Anh/Mỹ · Phân loại theo độ khó và {atlas.topics.length} chủ đề IELTS
           </p>
         </div>
         <label className="search">
@@ -112,7 +112,7 @@ export function AtlasPage({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="搜索单词或中文释义"
+            placeholder="Tìm kiếm từ tiếng Anh..."
             spellCheck={false}
             autoComplete="off"
           />
@@ -120,7 +120,7 @@ export function AtlasPage({
             <button
               className="icon-btn"
               onClick={() => setQ("")}
-              aria-label="清空搜索"
+              aria-label="Xóa tìm kiếm"
             >
               <X size={16} />
             </button>
@@ -131,12 +131,12 @@ export function AtlasPage({
       <div className="filters">
         {view !== "galaxy" && (
           <>
-            <div className="chips chips-scroll" role="group" aria-label="难度">
+            <div className="chips chips-scroll" role="group" aria-label="Độ khó">
               <button
                 className={`chip-btn ${!level ? "is-on" : ""}`}
                 onClick={() => setFilter({ level: undefined })}
               >
-                所有难度
+                Tất cả độ khó
               </button>
               {atlas.cefr.map((l) => (
                 <button
@@ -150,12 +150,12 @@ export function AtlasPage({
                 </button>
               ))}
             </div>
-            <div className="chips chips-scroll" role="group" aria-label="主题">
+            <div className="chips chips-scroll" role="group" aria-label="Chủ đề">
               <button
                 className={`chip-btn ${!topic ? "is-on" : ""}`}
                 onClick={() => setFilter({ topic: undefined })}
               >
-                所有主题
+                Tất cả chủ đề
               </button>
               {atlas.topics.map(([k, name]) => (
                 <button
@@ -173,7 +173,7 @@ export function AtlasPage({
         )}
         <div className="filters-row">
           {view !== "galaxy" && (
-            <div className="segmented" role="group" aria-label="学习状态">
+            <div className="segmented" role="group" aria-label="Trạng thái học">
               {STATUS.map(([k, label]) => (
                 <button
                   key={k}
@@ -188,18 +188,18 @@ export function AtlasPage({
           )}
           <span className="result-count">
             {view === "galaxy"
-              ? "搜索一个词，星图会带你飞过去"
-              : `${list.length.toLocaleString()} 个结果`}
+              ? "Tìm kiếm một từ, Bản đồ sao sẽ đưa bạn tới đó"
+              : `${list.length.toLocaleString()} kết quả`}
           </span>
           <div
             className="segmented segmented-icons"
             role="group"
-            aria-label="视图"
+            aria-label="Chế độ xem"
           >
             <button
               className={view === "grid" ? "is-on" : ""}
               onClick={() => setView("grid")}
-              aria-label="图片视图"
+              aria-label="Dạng lưới ảnh"
               aria-pressed={view === "grid"}
             >
               <Grid3x3 size={17} />
@@ -207,7 +207,7 @@ export function AtlasPage({
             <button
               className={view === "list" ? "is-on" : ""}
               onClick={() => setView("list")}
-              aria-label="列表视图"
+              aria-label="Dạng danh sách"
               aria-pressed={view === "list"}
             >
               <List size={17} />
@@ -215,7 +215,7 @@ export function AtlasPage({
             <button
               className={view === "galaxy" ? "is-on" : ""}
               onClick={() => setView("galaxy")}
-              aria-label="星图视图"
+              aria-label="Dạng bản đồ sao"
               aria-pressed={view === "galaxy"}
             >
               <Sparkles size={17} />
@@ -229,7 +229,7 @@ export function AtlasPage({
       ) : list.length === 0 ? (
         <div className="empty">
           <img src={`${import.meta.env.BASE_URL}brand/empty.webp`} alt="" />
-          <p>这片星域还没有词。换个筛选条件试试。</p>
+          <p>Khu vực sao này chưa có từ nào. Hãy thử đổi điều kiện lọc.</p>
         </div>
       ) : view === "grid" ? (
         <VirtualGrid items={list} cards={cards} />
@@ -307,7 +307,7 @@ function VirtualGrid({
   const cell = (width - gap * (cols - 1)) / cols;
   const rowH = cell + (width < 560 ? 62 : 74) + gap;
   const rows = Math.ceil(items.length / cols);
-  const [a, b] = useWindowRange(box, rowH, rows);
+  const [a, b] = useWindowRange(box, rowH, rows, 8);
   const visible: React.ReactNode[] = [];
   if (width > 0)
     for (let r = a; r < b; r++)
@@ -335,6 +335,7 @@ function VirtualGrid({
               src={atlas.img(w, "thumb")}
               word={w.word}
               topic={w.topic}
+              eager
             />
             <span className="tile-no">
               № {String(w.order + 1).padStart(4, "0")}

@@ -14,15 +14,15 @@ type Mode = "word" | "sentence" | "dictation";
 type Source = "recent" | "mistakes" | "saved" | "path";
 
 const MODES: [Mode, string, string, typeof Type][] = [
-  ["word", "单词", "看图写出单词", Type],
-  ["sentence", "例句", "照着抄写，练出手感", Keyboard],
-  ["dictation", "听写", "只听声音，写下整句", Headphones],
+  ["word", "Từ vựng", "Nhìn hình gõ từ tiếng Anh", Type],
+  ["sentence", "Câu ví dụ", "Gõ lại câu để rèn phản xạ", Keyboard],
+  ["dictation", "Nghe & Chép", "Chỉ nghe âm thanh, gõ lại cả câu", Headphones],
 ];
 const SOURCES: [Source, string][] = [
-  ["recent", "最近学过"],
-  ["mistakes", "错词本"],
-  ["saved", "收藏"],
-  ["path", "学习路线"],
+  ["recent", "Vừa học gần đây"],
+  ["mistakes", "Sổ từ sai"],
+  ["saved", "Đã lưu"],
+  ["path", "Lộ trình học"],
 ];
 
 export function Practice() {
@@ -54,13 +54,13 @@ export function Practice() {
   return (
     <div className="page practice">
       <header className="page-head">
-        <p className="eyebrow">练习 · Typing Studio</p>
-        <h1 className="display">让手，也记住它们。</h1>
-        <p className="lede">打字只练拼写和手感，不会改动记忆进度。</p>
+        <p className="eyebrow">Luyện tập · Typing Studio</p>
+        <h1 className="display">Để đôi tay cũng ghi nhớ.</h1>
+        <p className="lede">Gõ phím rèn luyện trí nhớ cơ bắp và chính tả, không làm thay đổi tiến độ FSRS.</p>
       </header>
       <div className="practice-grid">
         <section className="panel">
-          <h3 className="eyebrow">模式</h3>
+          <h3 className="eyebrow">Chế độ</h3>
           <div className="mode-cards">
             {MODES.map(([k, name, desc, Icon]) => (
               <button key={k} className={`mode-card ${mode === k ? "is-on" : ""}`} onClick={() => setMode(k)} aria-pressed={mode === k}>
@@ -70,7 +70,7 @@ export function Practice() {
               </button>
             ))}
           </div>
-          <h3 className="eyebrow">词来自</h3>
+          <h3 className="eyebrow">Nguồn từ vựng</h3>
           <div className="segmented segmented-wide">
             {SOURCES.map(([k, label]) => (
               <button key={k} className={source === k ? "is-on" : ""} onClick={() => setSource(k)} aria-pressed={source === k}>
@@ -81,30 +81,30 @@ export function Practice() {
           <p className="muted">
             {pool.length
               ? source === "path"
-                ? "从学习路线的前 400 个词里随机抽 10 个。"
-                : `可练 ${pool.length} 个词，每轮随机 10 个。`
-              : "这里还没有词，先去学几个，或换个来源。"}
+                ? "Chọn ngẫu nhiên 10 từ trong số 400 từ đầu tiên của lộ trình."
+                : `Có ${pool.length} từ khả dụng, mỗi lượt ngẫu nhiên 10 từ.`
+              : "Chưa có từ nào ở nguồn này. Hãy học thêm từ mới hoặc đổi nguồn khác."}
           </p>
           <button className="btn btn-primary btn-xl" onClick={start} disabled={!pool.length}>
-            开始一轮
+            Bắt đầu luyện tập
           </button>
         </section>
         <section className="panel practice-side">
           <img src={`${import.meta.env.BASE_URL}brand/${mode === "dictation" ? "listen" : "typing"}.webp`} alt="" />
           <dl className="mini-stats">
             <div>
-              <dt>最佳速度</dt>
+              <dt>Tốc độ cao nhất</dt>
               <dd>
                 {best}
                 <small>WPM</small>
               </dd>
             </div>
             <div>
-              <dt>完成轮次</dt>
+              <dt>Lượt đã hoàn thành</dt>
               <dd>{progress.typing.length}</dd>
             </div>
           </dl>
-          <p className="muted">WPM 按标准每 5 个字符计 1 词，只统计正确输入。</p>
+          <p className="muted">WPM quy chuẩn 5 ký tự = 1 từ, chỉ tính các ký tự nhập đúng.</p>
         </section>
       </div>
     </div>
@@ -169,17 +169,17 @@ function TypingRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: 
     return (
       <div className="page practice">
         <section className="panel typing-done">
-          <p className="eyebrow">本轮完成</p>
+          <p className="eyebrow">Hoàn thành lượt gõ</p>
           <h1 className="display">
             {m.wpm} <small>WPM</small>
           </h1>
-          <p className="lede">准确率 {m.accuracy}% · {entries.length} 项</p>
+          <p className="lede">Độ chính xác {m.accuracy}% · {entries.length} mục</p>
           <div className="summary-actions">
             <button className="btn btn-ghost" onClick={onExit}>
-              返回
+              Quay lại
             </button>
             <button className="btn btn-primary btn-xl" onClick={onAgain} autoFocus>
-              <RotateCcw size={18} /> 再来一轮
+              <RotateCcw size={18} /> Luyện thêm lượt nữa
             </button>
           </div>
         </section>
@@ -190,7 +190,7 @@ function TypingRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: 
     <div className="page practice typing">
       <header className="typing-top">
         <button className="btn btn-ghost" onClick={onExit}>
-          结束
+          Kết thúc
         </button>
         <AmbiencePicker />
         <div className="learn-progress">
@@ -213,7 +213,7 @@ function TypingRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: 
           <p className="typing-zh">
             {mode === "dictation" && (
               <button className="link" onClick={() => play(atlas.audio(e, "ex"), e.ex[0].en, settings.accent)}>
-                再听一遍
+                Nghe lại
               </button>
             )}
             {e.ex[0].zh}
@@ -241,10 +241,10 @@ function TypingRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: 
           autoCorrect="off"
           autoComplete="off"
           spellCheck={false}
-          aria-label="在这里输入"
+          aria-label="Nhập từ tại đây"
         />
         <p className="muted typing-help">
-          {mode === "dictation" ? "听不清可以点「再听一遍」。" : "直接开始输入，全部正确后自动进入下一项。"} 第 {i + 1}/{entries.length} 项
+          {mode === "dictation" ? "Nếu nghe chưa rõ có thể nhấn「Nghe lại」." : "Bắt đầu gõ trực tiếp, khi đúng hết sẽ tự chuyển sang câu tiếp theo."} Câu {i + 1}/{entries.length}
         </p>
       </section>
     </div>

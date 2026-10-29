@@ -16,9 +16,31 @@ interface IndexFile {
   words: IndexRow[];
 }
 
+export const TOPICS_VI: Record<string, string> = {
+  education: "Giáo dục",
+  work: "Công việc",
+  technology: "Công nghệ",
+  science: "Khoa học",
+  environment: "Môi trường",
+  health: "Sức khỏe",
+  society: "Xã hội",
+  government: "Chính phủ & Luật",
+  economy: "Kinh tế",
+  media: "Truyền thông",
+  arts: "Nghệ thuật",
+  travel: "Du lịch",
+  city: "Đô thị",
+  nature: "Tự nhiên",
+  daily: "Đời sống",
+  emotion: "Cảm xúc",
+  thinking: "Tư duy",
+  sport: "Thể thao",
+  history: "Lịch sử",
+};
+
 export async function loadOpenAtlas(): Promise<Atlas> {
   const res = await fetch(url("index.json"));
-  if (!res.ok) throw new Error(`词库索引加载失败（${res.status}）`);
+  if (!res.ok) throw new Error(`Không thể tải chỉ mục từ điển (${res.status})`);
   const idx = (await res.json()) as IndexFile;
   const words: WordRef[] = idx.words.map((r, order) => ({
     id: r[0],
@@ -39,7 +61,7 @@ export async function loadOpenAtlas(): Promise<Atlas> {
     if (!p) {
       p = fetch(url(`entries/${n}.json`))
         .then((r) => {
-          if (!r.ok) throw new Error(`词条加载失败（${r.status}）`);
+          if (!r.ok) throw new Error(`Không thể tải từ vựng (${r.status})`);
           return r.json() as Promise<Entry[]>;
         })
         .then((list) => list.forEach((e) => cache.set(e.id, e)))
@@ -59,7 +81,7 @@ export async function loadOpenAtlas(): Promise<Atlas> {
     count: idx.count,
     examples: idx.examples,
     illustrated: idx.illustrated,
-    topics: idx.topics,
+    topics: idx.topics.map(([k, zh]) => [k, TOPICS_VI[k] || zh]),
     cefr: idx.cefr,
     words,
     byId,
@@ -68,10 +90,10 @@ export async function loadOpenAtlas(): Promise<Atlas> {
       const hit = cache.get(id);
       if (hit) return hit;
       const ref = byId.get(id);
-      if (!ref) throw new Error(`没有找到词条 ${id}`);
+      if (!ref) throw new Error(`Không tìm thấy từ vựng ${id}`);
       await loadChunk(Math.floor(ref.order / idx.chunk));
       const e = cache.get(id);
-      if (!e) throw new Error(`没有找到词条 ${id}`);
+      if (!e) throw new Error(`Không tìm thấy từ vựng ${id}`);
       return e;
     },
     img: (ref, size = "full") =>
@@ -154,14 +176,14 @@ export async function loadPrivateAtlas(open: Atlas | null): Promise<Atlas | null
     count: words.length,
     examples: [...entries.values()].reduce((n, e) => n + e.ex.length, 0),
     illustrated: words.filter((w) => w.media & MEDIA.img).length,
-    topics: open?.topics ?? [["thinking", "综合"]],
+    topics: open?.topics ?? [["thinking", "Tổng hợp"]],
     cefr: open?.cefr ?? ["A1", "A2", "B1", "B2", "C1", "C2"],
     words,
     byId,
     peek: (id) => entries.get(id),
     entry: async (id) => {
       const e = entries.get(id);
-      if (!e) throw new Error(`没有找到词条 ${id}`);
+      if (!e) throw new Error(`Không tìm thấy từ vựng ${id}`);
       return e;
     },
     img: (ref) => pick(ref)?.img ?? null,

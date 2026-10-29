@@ -2,6 +2,10 @@ import { useState } from "react";
 
 const HUES = ["#C4573A", "#7F9B77", "#D9A03A", "#5F7FA3", "#A86B8C", "#4E7C76"];
 
+// Global memory cache of image URLs that have already loaded.
+// Prevents remounted components in virtual scrolling from flashing or re-animating.
+const loadedUrls = new Set<string>();
+
 /** Square illustration with a typographic plate as an intentional fallback. */
 export function Illustration({
   src,
@@ -18,18 +22,24 @@ export function Illustration({
   eager?: boolean;
   alt?: string;
 }) {
-  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  const isPrecached = src ? loadedUrls.has(src) : false;
+  const [state, setState] = useState<"loading" | "ok" | "error">(isPrecached ? "ok" : "loading");
   const showImg = src && state !== "error";
+  const isLoaded = showImg && (isPrecached || state === "ok");
+
   return (
-    <figure className={`illo ${showImg && state === "ok" ? "is-loaded" : ""} ${className}`}>
+    <figure className={`illo ${isLoaded ? "is-loaded" : ""} ${isPrecached ? "is-cached" : ""} ${className}`}>
       {showImg ? (
         <img
           src={src}
           alt={alt ?? ""}
-          loading={eager ? "eager" : "lazy"}
+          loading={eager || isPrecached ? "eager" : "lazy"}
           decoding="async"
           draggable={false}
-          onLoad={() => setState("ok")}
+          onLoad={() => {
+            if (src) loadedUrls.add(src);
+            setState("ok");
+          }}
           onError={() => setState("error")}
         />
       ) : (
