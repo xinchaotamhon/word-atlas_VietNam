@@ -35,10 +35,44 @@
           }
         });
       }
+
+      // Diagnostic error overlay for mobile devices
+      window.__moduleExecuted = false;
+      function showDiag(title, msg, color) {
+        var el = document.getElementById("diag-banner");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "diag-banner";
+          el.style.cssText = "position:fixed;top:12px;left:12px;right:12px;z-index:999999;padding:14px;border-radius:10px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#fff;word-break:break-word;box-shadow:0 8px 24px rgba(0,0,0,0.6);";
+          (document.body || document.documentElement).appendChild(el);
+        }
+        el.style.background = color || "#b91c1c";
+        el.innerHTML = "<strong>" + title + "</strong><br><div style='margin-top:6px;font-family:monospace;font-size:12px;opacity:0.95;white-space:pre-wrap;'>" + msg + "</div>";
+      }
+
+      window.addEventListener("error", function (e) {
+        var loc = (e.filename || "") + (e.lineno ? ":" + e.lineno : "") + (e.colno ? ":" + e.colno : "");
+        var detail = (e.message || "Unknown error") + (loc ? "\n" + loc : "") + (e.error && e.error.stack ? "\n" + e.error.stack : "");
+        showDiag("⚠️ LỖI JAVASCRIPT:", detail, "#b91c1c");
+      });
+
+      window.addEventListener("unhandledrejection", function (e) {
+        var reason = e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : "Unknown rejection";
+        showDiag("⚠️ LỖI PROMISE / BẤT ĐỒNG BỘ:", String(reason), "#b91c1c");
+      });
+
+      setTimeout(function () {
+        if (!window.__moduleExecuted && !document.getElementById("diag-banner")) {
+          showDiag("⚠️ CẢNH BÁO TẢI GÓI:", "Mã JavaScript (module) chưa hoàn tất tải sau 4s. Trình duyệt có thể bị chặn hoặc mất kết nối CDN.", "#d97706");
+        }
+      }, 4000);
     </script>
   </head>
   <body>
     <div id="root"></div>
+    <script type="module">
+      window.__moduleExecuted = true;
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
