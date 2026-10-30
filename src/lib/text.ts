@@ -10,14 +10,14 @@ const IRREGULAR = new Map(
 export function headwordPattern(word: string) {
   const w = word.trim().toLowerCase();
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  if (/\s/.test(w)) return new RegExp(`(?<![A-Za-z])(${w.split(/\s+/).map(esc).join("\\s+")})(?![A-Za-z])`, "i");
+  if (/\s/.test(w)) return new RegExp(`\\b(${w.split(/\s+/).map(esc).join("\\s+")})(?![A-Za-z])`, "i");
   const irregular = IRREGULAR.get(w);
-  if (irregular) return new RegExp(`(?<![A-Za-z])((?:${[w, ...irregular].map(esc).join("|")})[a-z]{0,3})(?![A-Za-z])`, "i");
+  if (irregular) return new RegExp(`\\b((?:${[w, ...irregular].map(esc).join("|")})[a-z]{0,3})(?![A-Za-z])`, "i");
   let stem = w;
   if (w.length > 3 && /[^aeiou]y$|e$/.test(w)) stem = w.slice(0, -1);
   // spin → spinning, stop → stopped
   const double = /[^aeiou][aeiou][bdgmnprt]$/.test(w) ? `${esc(w.slice(-1))}?` : "";
-  return new RegExp(`(?<![A-Za-z])(${esc(stem)}${double}[a-z]{0,4})(?![A-Za-z])`, "i");
+  return new RegExp(`\\b(${esc(stem)}${double}[a-z]{0,4})(?![A-Za-z])`, "i");
 }
 
 export function splitHighlight(sentence: string, word: string): [string, string, string] | null {
