@@ -3594,6 +3594,8 @@ a:hover .mark-needle,
 /* ---------- splash: the door to the atlas ---------- */
 
 .splash {
+  display: none !important;
+  pointer-events: none !important;
   position: fixed;
   inset: 0;
   z-index: 100;
