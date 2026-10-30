@@ -27,6 +27,14 @@
         } catch (e) {}
         if (t !== "system") document.documentElement.setAttribute("data-theme", t);
       })();
+      // Unregister any legacy service workers to prevent Safari reload loop
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister();
+          }
+        });
+      }
     </script>
   </head>
   <body>
