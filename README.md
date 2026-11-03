@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://github.com/xinchaotamhon/word-atlas_VietNam"><img src="docs/assets/cover-v2.jpg" alt="Word Atlas (Bản đồ từ vựng) — Mỗi từ một bức tranh, thắp sáng IELTS" width="100%"></a>
+<a href="https://xinchaotamhon.github.io/word-atlas_VietNam/"><img src="docs/assets/cover-v2.jpg" alt="Word Atlas (Bản đồ từ vựng) — Mỗi từ một bức tranh, thắp sáng IELTS" width="100%"></a>
 
 # Word Atlas · Bản đồ từ vựng IELTS (Phiên bản Tiếng Việt)
 
@@ -8,6 +8,7 @@
 
 7.298 mục từ IELTS · Tranh minh họa độc bản · Phát âm chuẩn Anh/Mỹ · Thuật toán ghi nhớ FSRS · Giao diện Tiếng Việt · Tối ưu hiệu năng
 
+[![Trải nghiệm trực tuyến](https://img.shields.io/badge/Trải_nghiệm-Word_Atlas_Online-10B981?style=flat-square&logo=githubpages)](https://xinchaotamhon.github.io/word-atlas_VietNam/)
 [![Mã nguồn: MIT](https://img.shields.io/badge/Code-MIT-17283B?style=flat-square)](LICENSE)
 [![Dữ liệu: CC BY 4.0](https://img.shields.io/badge/Dataset-CC_BY_4.0-AD5038?style=flat-square)](CONTENT_LICENSE.md)
 [![Dự án gốc: designfuchen/word-atlas](https://img.shields.io/badge/Upstream-word--atlas-17283B?style=flat-square&logo=github)](https://github.com/designfuchen/word-atlas)
@@ -18,7 +19,7 @@
 
 ## 📌 Giới thiệu dự án
 
-Dự án này là phiên bản **Việt hóa toàn diện và tối ưu hóa hiệu năng** của kho từ điển gốc [Word Atlas (词光)](https://github.com/designfuchen/word-atlas) do tác giả [@designfuchen](https://github.com/designfuchen) sáng tạo và phát triển.
+Dự án này là phiên bản **Việt hóa toàn diện, nâng cấp phương pháp học chủ động (Active Recall) và tối ưu hóa hiệu năng** của kho từ điển gốc [Word Atlas (词光)](https://github.com/designfuchen/word-atlas) do tác giả [@designfuchen](https://github.com/designfuchen) sáng tạo và phát triển.
 
 Word Atlas là ứng dụng học từ vựng IELTS đột phá lấy hình ảnh và ngữ cảnh làm trọng tâm. Người học hiểu sâu nghĩa từ qua tranh vẽ trực quan, nghe phát âm giọng bản xứ để liên kết âm thanh - hình ảnh, và củng cố trí nhớ dài hạn nhờ thuật toán lặp lại ngắt quãng **FSRS** (thuật toán khoa học cùng loại với Anki thế hệ mới).
 
@@ -28,11 +29,14 @@ Word Atlas là ứng dụng học từ vựng IELTS đột phá lấy hình ản
 
 ## 📊 So sánh chi tiết: Bản Việt hóa so với Bản gốc của tác giả
 
-Dưới đây là bảng tổng hợp các điểm cải tiến và thay đổi cụ thể so với repository gốc `designfuchen/word-atlas`:
+Dưới đây là bảng tổng hợp các điểm cải tiến và tính năng mới được bổ sung so với repository gốc `designfuchen/word-atlas`:
 
 | Tiêu chí so sánh | Bản gốc tác giả (`designfuchen/word-atlas`) | Bản cải tiến Tiếng Việt (`xinchaotamhon/word-atlas_VietNam`) |
 | :--- | :--- | :--- |
 | **Ngôn ngữ giao diện (UI)** | 100% Tiếng Trung (menu, nút bấm, hướng dẫn, cài đặt, phím tắt). | **100% Tiếng Việt** tự nhiên, chỉn chu trên toàn bộ các trang (`Hôm nay`, `Từ điển`, `Luyện tập`, `Cá nhân`, `Giới thiệu`, `Cài đặt`). |
+| **Phương pháp học Active Recall (Flashcard)** | Luôn hiện sẵn chữ từ vựng và nghĩa tiếng Trung, dễ gây học thụ động. | **Mặc định ẩn từ vựng & nghĩa (Flashcard Mode):** Chỉ hiện tranh minh họa để người học nhìn hình tự suy ngẫm; trang bị **nút con mắt 👁️ hé lộ từ vựng trong đúng 1 giây** rồi tự tắt để kích thích não bộ truy hồi trí nhớ dài hạn. |
+| **Cơ chế Xáo trộn (Smart Shuffle)** | Danh sách từ cố định theo thứ tự từ điển, dễ gây đoán trước từ tiếp theo. | **Tự động xáo trộn ngẫu nhiên 1 lần** mỗi khi chuyển sang chủ đề hoặc độ khó khác nhau; có nút `<Shuffle />` bấm xáo trộn bất kỳ lúc nào trên thanh công cụ lọc. |
+| **Tương thích toàn diện iOS Safari / WebKit** | Sử dụng cú pháp Regex Negative Lookbehind `(?<!...)` và Service Worker controller loop khiến trang bị crash màn hình xanh trên iPhone/iPad. | **Tối ưu hóa ranh giới từ `\b` và xử lý vòng lặp Service Worker**, giúp ứng dụng tải mượt mà 100% trên mọi dòng iPhone, iPad, Android và trình duyệt WebKit. |
 | **Hiển thị định nghĩa từ vựng** | Hiển thị tiếng Trung (`zh`) làm định nghĩa chính. | **Ưu tiên định nghĩa chuẩn tiếng Anh gốc (`en`)** trên thẻ từ vựng để giữ trọn vẹn ngữ cảnh học thuật IELTS, tránh sai lệch do dịch thô. |
 | **Hiển thị font chữ tiếng Việt** | Dùng font tiếng Trung làm mặc định; các ký tự có dấu phức (`ệ`, `ở`, `ữ`, `ẵ`,...) thường bị lỗi lệch dấu, vỡ chữ trên Windows/Android. | **Đã tái cấu trúc Font Stack:** Ưu tiên `Segoe UI`, `Roboto`, `-apple-system` lên đầu trong CSS và Canvas; hiển thị tiếng Việt sắc nét 100%. |
 | **Tốc độ tải ảnh khi cuộn (Scroll Lag)** | Thẻ từ ra/vào màn hình bị unmount/mount liên tục; ảnh bị ẩn (`opacity: 0`) và tải lại từ đầu, gây chớp nháy và giật khung hình. | **Tích hợp RAM Memory Cache Set:** Nhớ ngay các ảnh đã tải. Khi cuộn qua lại, ảnh hiển thị **tức thì (độ trễ 0ms)**, hoàn toàn không giật. |
@@ -46,7 +50,7 @@ Dưới đây là bảng tổng hợp các điểm cải tiến và thay đổi 
 
 ## 🚀 Hướng dẫn cài đặt & Khởi chạy (Dành cho người mới)
 
-Ứng dụng chạy hoàn toàn offline trên máy tính cá nhân.
+Ứng dụng chạy hoàn toàn offline trên máy tính cá nhân hoặc có thể trải nghiệm trực tiếp tại [GitHub Pages](https://xinchaotamhon.github.io/word-atlas_VietNam/).
 
 ### Bước 1: Chuẩn bị môi trường
 Hãy đảm bảo máy tính của bạn đã cài đặt:
@@ -95,6 +99,8 @@ Sau đó mở trình duyệt web và truy cập địa chỉ: **`http://localhos
   - *Thị giác:* Mỗi từ có một bức tranh minh họa câu chuyện trong ví dụ đầu tiên.
   - *Thính giác:* Hai giọng đọc chuẩn Anh (Alice) và Mỹ (Sarah) cùng 6 âm thanh nền tự nhiên giúp tập trung (mưa rơi, thư viện, quán cà phê, rừng cây,...).
   - *Vận động:* Typing Studio hỗ trợ luyện gõ phím rèn phản xạ chính tả theo chuẩn tốc độ WPM.
+- **Gợi nhớ chủ động (Active Recall) & Hé lộ 1 giây:** Nhìn tranh đoán từ, tự động ẩn chữ và nghĩa để kích hoạt phản xạ tư duy; hỗ trợ nút bấm con mắt hé lộ từ vựng trong 1 giây để kiểm tra lại trí nhớ tức thời.
+- **Xáo trộn thông minh (Smart Shuffle):** Tự động đảo ngẫu nhiên khi đổi chủ đề hoặc trình độ, loại bỏ tình trạng đoán trước thứ tự từ.
 - **Thuật toán lặp lại ngắt quãng FSRS:** Sắp xếp lịch ôn tập tối ưu cho trí nhớ dài hạn, chỉ ôn những từ chuẩn bị quên.
 - **Quyền riêng tư tuyệt đối:** Không cần tài khoản; hỗ trợ xuất (`Export`) và nhập (`Import`) tệp sao lưu tiến độ học tập JSON bất cứ lúc nào khi đổi máy.
 
