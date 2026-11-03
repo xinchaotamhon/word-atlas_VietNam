@@ -85,6 +85,11 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
           <div className="entry-tags">
             <span className={`chip chip-level lv-${entry.cefr}`}>{entry.cefr}</span>
             {topic && <span className="chip">{topic[1]}</span>}
+            {Array.from(new Set(entry.senses.map((s) => s.pos.trim()).filter(Boolean))).map((pos) => (
+              <span key={pos} className="chip chip-pos">
+                {pos}
+              </span>
+            ))}
             {status && <span className={`chip chip-status ${status === "Đã thuộc" ? "is-done" : ""}`}>{status}</span>}
           </div>
           {mode === "detail" && (

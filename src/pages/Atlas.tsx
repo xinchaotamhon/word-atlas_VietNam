@@ -454,13 +454,24 @@ function VirtualGrid({
                   {atlas.cefr[w.cefr]}
                 </span>
               </div>
-              <span
-                className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
-              >
-                {showWord ? (w.ipa || "") : "••••••"}
-              </span>
+              <div className="tile-meta-row">
+                <span
+                  className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+                >
+                  {showWord ? (w.ipa || "") : "••••••"}
+                </span>
+                {w.pos && w.pos.length > 0 && (
+                  <span className="tile-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
+                    {w.pos.map((p) => (
+                      <span key={p} className="tile-pos-tag">
+                        {p}
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </div>
               <span
                 className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
                 onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
@@ -545,12 +556,23 @@ function VirtualList({
               topic={w.topic}
               className="row-art"
             />
-            <span
-              className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-              lang="en"
-              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-            >
-              {showWord ? w.word : "••••••"}
+            <span className="row-word-wrap">
+              <span
+                className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                lang="en"
+                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+              >
+                {showWord ? w.word : "••••••"}
+              </span>
+              {w.pos && w.pos.length > 0 && (
+                <span className="row-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
+                  {w.pos.map((p) => (
+                    <span key={p} className="tile-pos-tag">
+                      {p}
+                    </span>
+                  ))}
+                </span>
+              )}
             </span>
             <span
               className={`row-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}

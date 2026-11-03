@@ -1,7 +1,7 @@
 export type Accent = "uk" | "us";
 
 /** Compact row from atlas/index.json: [id, word, zh, ipa, cefr, topic, media]. */
-export type IndexRow = [string, string, string, string, number, number, number];
+export type IndexRow = [string, string, string, string, number, number, number, string?];
 
 export interface Sense {
   pos: string;
@@ -48,6 +48,8 @@ export interface WordRef {
   media: number;
   /** Position in the learning path. */
   order: number;
+  /** Parts of speech (e.g. ['v.', 'n.']). */
+  pos: string[];
 }
 
 export interface Atlas {

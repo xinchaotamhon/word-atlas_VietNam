@@ -4264,3 +4264,52 @@ a:hover .mark-needle,
 .row-word.is-revealed {
   color: var(--terra);
 }
+
+/* Multi-POS badges on card */
+.tile-meta-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 18px;
+  margin-top: 2px;
+}
+.tile-pos-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.tile-pos-tag {
+  font: 600 10px/1.2 var(--serif);
+  font-style: italic;
+  color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--terra) 28%, transparent);
+  padding: 1.5px 4.5px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.row-word-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+.row-pos-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.chip-pos {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 14%, transparent);
+  border-color: color-mix(in oklab, var(--terra) 30%, transparent);
+}

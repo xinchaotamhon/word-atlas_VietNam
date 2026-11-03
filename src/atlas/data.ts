@@ -42,16 +42,21 @@ export async function loadOpenAtlas(): Promise<Atlas> {
   const res = await fetch(url("index.json"));
   if (!res.ok) throw new Error(`Không thể tải chỉ mục từ điển (${res.status})`);
   const idx = (await res.json()) as IndexFile;
-  const words: WordRef[] = idx.words.map((r, order) => ({
-    id: r[0],
-    word: r[1],
-    zh: r[2],
-    ipa: r[3],
-    cefr: r[4],
-    topic: r[5],
-    media: r[6],
-    order,
-  }));
+  const words: WordRef[] = idx.words.map((r, order) => {
+    const rawPos = r[7] || (r[2].match(/^([a-z]+\.)/) ? r[2].match(/^([a-z]+\.)/)![1] : "");
+    const pos = rawPos ? rawPos.split(/\s+/).filter(Boolean) : [];
+    return {
+      id: r[0],
+      word: r[1],
+      zh: r[2],
+      ipa: r[3],
+      cefr: r[4],
+      topic: r[5],
+      media: r[6],
+      pos,
+      order,
+    };
+  });
   const byId = new Map(words.map((w) => [w.id, w]));
   const cache = new Map<string, Entry>();
   const pending = new Map<number, Promise<void>>();
@@ -164,6 +169,7 @@ export async function loadPrivateAtlas(open: Atlas | null): Promise<Atlas | null
       cefr: twin?.cefr ?? 2,
       topic: twin?.topic ?? 16,
       media: entries.get(w.id)!.m,
+      pos: pos ? [pos] : [],
       order,
     };
   });

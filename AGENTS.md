@@ -18,7 +18,7 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
 
 > [!IMPORTANT]
 > **QUY TẮC BẮT BUỘC KHI GỬI LINK TEST HOẶC BÀN GIAO CHO NGƯỜI DÙNG:**
-> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=8`, `?v=9`,...
+> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=9`, `?v=9`,...
 > 2. **TUYỆT ĐỐI KHÔNG DÙNG** chuỗi chữ hoặc tên tính năng (ví dụ: `?v=uk-audio`, `?v=test`, v.v.).
 > 3. **Lý do:** Người dùng cần theo dõi phiên bản bằng số liên tục để biết mình đã tải đúng bản mới nhất, và trình duyệt di động (đặc biệt là Mobile Safari/Chrome iOS) cần query param mới để xóa triệt để cache của bundle cũ.
 
@@ -55,6 +55,14 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
 - **Hành vi:** Tự động xáo trộn 1 lần khi người học chuyển đổi chủ đề (`topic`) hoặc cấp độ CEFR (`level`). Ngoài ra có nút `<Shuffle />` trên thanh lọc để xáo trộn thủ công bất cứ lúc nào.
 
 ---
+
+
+### 3.4. Hiển thị từ loại đa năng (Multi-POS Badges)
+- **Tập tin chính:** `src/atlas/types.ts`, `src/atlas/data.ts`, `src/pages/Atlas.tsx`, `src/ui/EntryView.tsx`, `src/styles/app.css`.
+- **Cơ chế:**
+  - Kho 7.298 từ có hơn 2.028 từ mang từ 2 đến 3 từ loại (như `ski` vừa là `v.` vừa là `n.`, `fast` là `adj. adv. v.`).
+  - Dữ liệu từ loại được trích xuất từ toàn bộ `public/atlas/entries/*.json` và lưu vào phần tử thứ 8 (`r[7]`) của `public/atlas/index.json`.
+  - Trên thẻ từ vựng (`VirtualGrid` & `VirtualList`), các nhãn từ loại (`.tile-pos-tag`) luôn hiển thị rõ ràng ngay cả khi đang bật chế độ ẩn chữ (Active Recall). Điều này giúp người học phân biệt các thẻ tranh gần giống nhau (như `ski` vs `skiing`) để suy ngẫm từ vựng chính xác.
 
 ## 4. Quy tắc vàng về tương thích WebKit / Safari iOS
 
