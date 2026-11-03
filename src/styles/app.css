@@ -4129,3 +4129,108 @@ a:hover .mark-needle,
 .streak-panel .mini-stats div:first-child dd {
   color: var(--ochre);
 }
+
+/* ---------- Flashcard Active Recall (Hide & 1s Peek) ---------- */
+
+.tile-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.tile-peek-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--line) 40%, transparent);
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.tile-peek-btn:hover {
+  color: var(--terra);
+  border-color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+.tile-peek-btn.is-peeking {
+  color: #fff;
+  background: var(--terra);
+  border-color: var(--terra);
+  box-shadow: 0 0 10px rgba(224, 90, 71, 0.5);
+}
+.tile.is-peeking-card {
+  border-color: var(--terra);
+  box-shadow: 0 0 18px -4px rgba(224, 90, 71, 0.45);
+}
+.tile-word.is-masked {
+  letter-spacing: 2px;
+  color: var(--ink-3);
+  opacity: 0.65;
+  cursor: pointer;
+}
+.tile-word.is-masked:hover {
+  color: var(--terra);
+  opacity: 0.9;
+}
+.tile-zh.is-masked {
+  color: var(--ink-3);
+  opacity: 0.55;
+  font-style: italic;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.tile-zh.is-masked:hover {
+  color: var(--ink-2);
+}
+.tile-word.is-revealed {
+  color: var(--terra);
+}
+.tile-zh.is-revealed {
+  color: var(--ink);
+}
+
+.row-peek-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--line) 40%, transparent);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  margin-right: 6px;
+  transition: all 0.2s ease;
+}
+.row-peek-btn:hover,
+.row-peek-btn.is-peeking {
+  color: var(--terra);
+  border-color: var(--terra);
+}
+.row-peek-btn.is-peeking {
+  color: #fff;
+  background: var(--terra);
+}
+.row.is-peeking-row {
+  background: color-mix(in oklab, var(--terra) 10%, transparent);
+}
+.row-word.is-masked {
+  letter-spacing: 2px;
+  color: var(--ink-3);
+  opacity: 0.65;
+  cursor: pointer;
+}
+.row-zh.is-masked {
+  color: var(--ink-3);
+  opacity: 0.55;
+  font-style: italic;
+  font-size: 12px;
+  cursor: pointer;
+}
+.row-word.is-revealed {
+  color: var(--terra);
+}

@@ -1,10 +1,11 @@
-import { Grid3x3, List, Search, Sparkles, X } from "lucide-react";
+import { Eye, EyeOff, Grid3x3, List, Search, Shuffle, Sparkles, X } from "lucide-react";
 import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
 import type { WordRef } from "../atlas/types";
 import { morphFrom } from "../lib/motion";
 import { go, openWord, type Route } from "../lib/router";
+import { shuffle } from "../lib/text";
 import { isMastered } from "../store/srs";
 import { useStore } from "../store/store";
 import { Illustration } from "../ui/Illustration";
@@ -45,6 +46,14 @@ export function AtlasPage({
       ? route.view
       : readView(),
   );
+
+  // Flashcard mode: Hide words and definitions by default
+  const [hideWords, setHideWords] = useState(true);
+
+  // Random mode: Shuffled by default and re-shuffled whenever switching topic or difficulty level
+  const [isShuffled, setIsShuffled] = useState(true);
+  const [shuffleSeed, setShuffleSeed] = useState(() => Math.floor(Math.random() * 2 ** 31));
+
   // Follow the URL when a link switches views while this page is already open.
   useEffect(() => {
     if (route.view === "grid" || route.view === "list" || route.view === "galaxy") setViewState(route.view);
@@ -65,6 +74,20 @@ export function AtlasPage({
   const topic = route.topic;
   const level = route.level;
 
+  // Auto re-shuffle once whenever topic or difficulty level changes
+  const prevFilterRef = useRef<{ topic?: string; level?: string }>({ topic, level });
+  useEffect(() => {
+    if (prevFilterRef.current.topic !== topic || prevFilterRef.current.level !== level) {
+      prevFilterRef.current = { topic, level };
+      setShuffleSeed(Math.floor(Math.random() * 2 ** 31));
+    }
+  }, [topic, level]);
+
+  const handleShuffle = () => {
+    setIsShuffled(true);
+    setShuffleSeed(Math.floor(Math.random() * 2 ** 31));
+  };
+
   useEffect(() => {
     try {
       localStorage.setItem("word-atlas:view", view);
@@ -78,7 +101,7 @@ export function AtlasPage({
     const ti = topic ? atlas.topics.findIndex((t) => t[0] === topic) : -1;
     const li = level ? atlas.cefr.indexOf(level) : -1;
     const base = q.trim() ? searchAtlas(atlas, q, 5000) : atlas.words;
-    return base.filter((w) => {
+    const filtered = base.filter((w) => {
       if (ti >= 0 && w.topic !== ti) return false;
       if (li >= 0 && w.cefr !== li) return false;
       const c = cards[w.id];
@@ -88,7 +111,8 @@ export function AtlasPage({
       if (status === "saved") return saved.has(w.id);
       return true;
     });
-  }, [atlas, q, topic, level, status, cards, bookmarks]);
+    return isShuffled && !q.trim() ? shuffle(filtered, shuffleSeed) : filtered;
+  }, [atlas, q, topic, level, status, cards, bookmarks, isShuffled, shuffleSeed]);
 
   const setFilter = (patch: Partial<Extract<Route, { page: "atlas" }>>) =>
     go({ page: "atlas", topic, level, view: route.view, ...patch }, null, true);
@@ -191,6 +215,34 @@ export function AtlasPage({
               ? "Tìm kiếm một từ, Bản đồ sao sẽ đưa bạn tới đó"
               : `${list.length.toLocaleString()} kết quả`}
           </span>
+
+          {view !== "galaxy" && (
+            <div
+              className="segmented segmented-icons"
+              role="group"
+              aria-label="Công cụ học tập"
+            >
+              <button
+                type="button"
+                className={isShuffled ? "is-on" : ""}
+                onClick={handleShuffle}
+                aria-label="Xáo trộn ngẫu nhiên"
+                title="Xáo trộn ngẫu nhiên (Nhấp để đổi thứ tự mới)"
+              >
+                <Shuffle size={17} />
+              </button>
+              <button
+                type="button"
+                className={hideWords ? "is-on" : ""}
+                onClick={() => setHideWords((h) => !h)}
+                aria-label={hideWords ? "Hiện từ và nghĩa" : "Ẩn từ và nghĩa (Đoán qua tranh)"}
+                title={hideWords ? "Đang ẩn từ & nghĩa (Nhấp để hiện)" : "Ẩn từ & nghĩa (Nhấp để ẩn)"}
+              >
+                {hideWords ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          )}
+
           <div
             className="segmented segmented-icons"
             role="group"
@@ -232,9 +284,9 @@ export function AtlasPage({
           <p>Khu vực sao này chưa có từ nào. Hãy thử đổi điều kiện lọc.</p>
         </div>
       ) : view === "grid" ? (
-        <VirtualGrid items={list} cards={cards} />
+        <VirtualGrid items={list} cards={cards} hideWords={hideWords} />
       ) : (
-        <VirtualList items={list} cards={cards} />
+        <VirtualList items={list} cards={cards} hideWords={hideWords} />
       )}
     </div>
   );
@@ -292,9 +344,11 @@ function useWidth(ref: React.RefObject<HTMLDivElement | null>) {
 function VirtualGrid({
   items,
   cards,
+  hideWords,
 }: {
   items: WordRef[];
   cards: Record<string, { s: number; st: number }>;
+  hideWords: boolean;
 }) {
   const atlas = useAtlas();
   const box = useRef<HTMLDivElement>(null);
@@ -308,6 +362,33 @@ function VirtualGrid({
   const rowH = cell + (width < 560 ? 62 : 74) + gap;
   const rows = Math.ceil(items.length / cols);
   const [a, b] = useWindowRange(box, rowH, rows, 8);
+
+  const [peeking, setPeeking] = useState<Record<string, boolean>>({});
+  const timerRef = useRef<Record<string, number>>({});
+
+  const peek = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (timerRef.current[id]) {
+      window.clearTimeout(timerRef.current[id]);
+    }
+    setPeeking((prev) => ({ ...prev, [id]: true }));
+    timerRef.current[id] = window.setTimeout(() => {
+      setPeeking((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete timerRef.current[id];
+    }, 1000);
+  };
+
+  useEffect(() => {
+    const timers = timerRef.current;
+    return () => {
+      Object.values(timers).forEach((t) => window.clearTimeout(t));
+    };
+  }, []);
+
   const visible: React.ReactNode[] = [];
   if (width > 0)
     for (let r = a; r < b; r++)
@@ -320,10 +401,13 @@ function VirtualGrid({
             ? "is-mastered"
             : "is-learning"
           : "";
+        const isPeeking = !!peeking[w.id];
+        const showWord = !hideWords || isPeeking;
+
         visible.push(
           <button
             key={w.id}
-            className={`tile ${st}`}
+            className={`tile ${st} ${isPeeking ? "is-peeking-card" : ""}`}
             style={{
               transform: `translate(${c * (cell + gap)}px, ${r * rowH}px)`,
               width: cell,
@@ -341,13 +425,39 @@ function VirtualGrid({
               № {String(w.order + 1).padStart(4, "0")}
             </span>
             <span className="tile-text">
-              <span className="tile-word" lang="en">
-                {w.word}
+              <span
+                className={`tile-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                lang="en"
+                onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+              >
+                {showWord ? w.word : "••••••"}
               </span>
-              <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
-                {atlas.cefr[w.cefr]}
+              <div className="tile-actions">
+                {hideWords && (
+                  <span
+                    className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => peek(w.id, e)}
+                    onKeyDown={(e) => e.key === "Enter" && peek(w.id, e as unknown as React.MouseEvent)}
+                    title="Hé lộ từ trong 1 giây"
+                    aria-label="Hé lộ từ trong 1 giây"
+                  >
+                    <Eye size={13} />
+                  </span>
+                )}
+                <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
+                  {atlas.cefr[w.cefr]}
+                </span>
+              </div>
+              <span
+                className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+              >
+                {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
               </span>
-              <span className="tile-zh">{w.zh}</span>
             </span>
           </button>,
         );
@@ -362,23 +472,55 @@ function VirtualGrid({
 function VirtualList({
   items,
   cards,
+  hideWords,
 }: {
   items: WordRef[];
   cards: Record<string, { s: number; st: number }>;
+  hideWords: boolean;
 }) {
   const atlas = useAtlas();
   const accent = useStore((s) => s.settings.accent);
   const box = useRef<HTMLDivElement>(null);
   const rowH = 68;
   const [a, b] = useWindowRange(box, rowH, items.length, 8);
+
+  const [peeking, setPeeking] = useState<Record<string, boolean>>({});
+  const timerRef = useRef<Record<string, number>>({});
+
+  const peek = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (timerRef.current[id]) {
+      window.clearTimeout(timerRef.current[id]);
+    }
+    setPeeking((prev) => ({ ...prev, [id]: true }));
+    timerRef.current[id] = window.setTimeout(() => {
+      setPeeking((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete timerRef.current[id];
+    }, 1000);
+  };
+
+  useEffect(() => {
+    const timers = timerRef.current;
+    return () => {
+      Object.values(timers).forEach((t) => window.clearTimeout(t));
+    };
+  }, []);
+
   return (
     <div ref={box} className="vlist" style={{ height: items.length * rowH }}>
       {items.slice(a, b).map((w, i) => {
         const card = cards[w.id];
+        const isPeeking = !!peeking[w.id];
+        const showWord = !hideWords || isPeeking;
+
         return (
           <div
             key={w.id}
-            className="row"
+            className={`row ${isPeeking ? "is-peeking-row" : ""}`}
             style={{ transform: `translateY(${(a + i) * rowH}px)` }}
             onClick={() => openWord(w.id)}
             role="button"
@@ -391,11 +533,31 @@ function VirtualList({
               topic={w.topic}
               className="row-art"
             />
-            <span className="row-word" lang="en">
-              {w.word}
+            <span
+              className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+              lang="en"
+              onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+            >
+              {showWord ? w.word : "••••••"}
             </span>
-            <span className="row-ipa ipa">{w.ipa}</span>
-            <span className="row-zh">{w.zh}</span>
+            <span className="row-ipa ipa">{showWord ? w.ipa : ""}</span>
+            <span
+              className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+              onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+            >
+              {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
+            </span>
+            {hideWords && (
+              <span
+                className={`row-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                role="button"
+                tabIndex={0}
+                onClick={(e) => peek(w.id, e)}
+                title="Hé lộ 1s"
+              >
+                <Eye size={15} />
+              </span>
+            )}
             <span
               className={`row-dot ${card ? (card.st === 2 && card.s >= 21 ? "is-mastered" : "is-learning") : ""}`}
             />
