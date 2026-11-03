@@ -3,6 +3,7 @@ import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
 import type { WordRef } from "../atlas/types";
+import { play } from "../lib/audio";
 import { morphFrom } from "../lib/motion";
 import { go, openWord, type Route } from "../lib/router";
 import { shuffle } from "../lib/text";
@@ -366,12 +367,14 @@ function VirtualGrid({
   const [peeking, setPeeking] = useState<Record<string, boolean>>({});
   const timerRef = useRef<Record<string, number>>({});
 
-  const peek = (id: string, e: React.MouseEvent) => {
+  const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
+    const id = w.id;
     if (timerRef.current[id]) {
       window.clearTimeout(timerRef.current[id]);
     }
     setPeeking((prev) => ({ ...prev, [id]: true }));
+    void play(atlas.audio(w, "uk"), w.word, "uk");
     timerRef.current[id] = window.setTimeout(() => {
       setPeeking((prev) => {
         const next = { ...prev };
@@ -428,7 +431,7 @@ function VirtualGrid({
               <span
                 className={`tile-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
                 lang="en"
-                onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
                 title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
               >
                 {showWord ? w.word : "••••••"}
@@ -439,8 +442,8 @@ function VirtualGrid({
                     className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
                     role="button"
                     tabIndex={0}
-                    onClick={(e) => peek(w.id, e)}
-                    onKeyDown={(e) => e.key === "Enter" && peek(w.id, e as unknown as React.MouseEvent)}
+                    onClick={(e) => peek(w, e)}
+                    onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
                     title="Hé lộ từ trong 1 giây"
                     aria-label="Hé lộ từ trong 1 giây"
                   >
@@ -453,7 +456,7 @@ function VirtualGrid({
               </div>
               <span
                 className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
                 title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
               >
                 {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
@@ -487,12 +490,14 @@ function VirtualList({
   const [peeking, setPeeking] = useState<Record<string, boolean>>({});
   const timerRef = useRef<Record<string, number>>({});
 
-  const peek = (id: string, e: React.MouseEvent) => {
+  const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
+    const id = w.id;
     if (timerRef.current[id]) {
       window.clearTimeout(timerRef.current[id]);
     }
     setPeeking((prev) => ({ ...prev, [id]: true }));
+    void play(atlas.audio(w, "uk"), w.word, "uk");
     timerRef.current[id] = window.setTimeout(() => {
       setPeeking((prev) => {
         const next = { ...prev };
@@ -536,14 +541,14 @@ function VirtualList({
             <span
               className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
               lang="en"
-              onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
             >
               {showWord ? w.word : "••••••"}
             </span>
             <span className="row-ipa ipa">{showWord ? w.ipa : ""}</span>
             <span
               className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-              onClick={hideWords && !isPeeking ? (e) => peek(w.id, e) : undefined}
+              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
             >
               {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
             </span>
@@ -552,7 +557,7 @@ function VirtualList({
                 className={`row-peek-btn ${isPeeking ? "is-peeking" : ""}`}
                 role="button"
                 tabIndex={0}
-                onClick={(e) => peek(w.id, e)}
+                onClick={(e) => peek(w, e)}
                 title="Hé lộ 1s"
               >
                 <Eye size={15} />

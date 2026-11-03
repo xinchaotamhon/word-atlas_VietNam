@@ -1,6 +1,8 @@
 import { Bookmark, BookmarkCheck, Lightbulb, Share2 } from "lucide-react";
+import { useEffect } from "react";
 import type { Entry, WordRef } from "../atlas/types";
 import { useAtlas } from "../atlas/context";
+import { play } from "../lib/audio";
 import { splitHighlight, splitPair } from "../lib/text";
 import { formatInterval, isMastered } from "../store/srs";
 import { toggleBookmark, useStore } from "../store/store";
@@ -65,6 +67,13 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
     return { label: f, id: hit?.id };
   });
   const status = card ? (isMastered(card) ? "Đã thuộc" : "Đang học") : null;
+
+  // Auto-play UK pronunciation when opening word details
+  useEffect(() => {
+    if (mode === "detail") {
+      void play(atlas.audio(entry, "uk"), entry.w, "uk");
+    }
+  }, [entry.id, mode]);
 
   return (
     <article className={`entry entry-${mode}`}>
