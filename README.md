@@ -34,7 +34,7 @@ Dưới đây là bảng tổng hợp các điểm cải tiến và tính năng 
 | Tiêu chí so sánh | Bản gốc tác giả (`designfuchen/word-atlas`) | Bản cải tiến Tiếng Việt (`xinchaotamhon/word-atlas_VietNam`) |
 | :--- | :--- | :--- |
 | **Ngôn ngữ giao diện (UI)** | 100% Tiếng Trung (menu, nút bấm, hướng dẫn, cài đặt, phím tắt). | **100% Tiếng Việt** tự nhiên, chỉn chu trên toàn bộ các trang (`Hôm nay`, `Từ điển`, `Luyện tập`, `Cá nhân`, `Giới thiệu`, `Cài đặt`). |
-| **Phương pháp học Active Recall (Flashcard)** | Luôn hiện sẵn chữ từ vựng và nghĩa tiếng Trung, dễ gây học thụ động. | **Mặc định ẩn từ vựng & nghĩa (Flashcard Mode):** Chỉ hiện tranh minh họa để người học nhìn hình tự suy ngẫm; trang bị **nút con mắt 👁️ hé lộ từ vựng trong đúng 1 giây** rồi tự tắt để kích thích não bộ truy hồi trí nhớ dài hạn. |
+| **Phương pháp học Active Recall (Flashcard)** | Luôn hiện sẵn chữ từ vựng và nghĩa tiếng Trung, dễ gây học thụ động. | **Mặc định ẩn từ vựng & nghĩa (Flashcard Mode):** Chỉ hiện tranh minh họa để người học nhìn hình tự suy ngẫm; trang bị **nút con mắt 👁️ hé lộ đồng thời từ vựng, phiên âm quốc tế UK và nghĩa trong đúng 1 giây** kèm phát âm chuẩn UK rồi tự tắt để kích thích não bộ truy hồi trí nhớ dài hạn. |
 | **Tự động phát âm thanh UK khi mở từ & xem lướt** | Phải bấm thủ công vào biểu tượng loa để nghe phát âm. | **Tự động phát âm thanh chuẩn Anh (UK)** ngay khi nhấn mở chi tiết từ vựng hoặc khi bấm nút mắt xem lướt 1s, giúp kết hợp đồng thời thị giác (nhìn tranh minh họa) và thính giác (nghe phát âm bản xứ). |
 | **Cơ chế Xáo trộn (Smart Shuffle)** | Danh sách từ cố định theo thứ tự từ điển, dễ gây đoán trước từ tiếp theo. | **Tự động xáo trộn ngẫu nhiên 1 lần** mỗi khi chuyển sang chủ đề hoặc độ khó khác nhau; có nút `<Shuffle />` bấm xáo trộn bất kỳ lúc nào trên thanh công cụ lọc. |
 | **Tương thích toàn diện iOS Safari / WebKit** | Sử dụng cú pháp Regex Negative Lookbehind `(?<!...)` và Service Worker controller loop khiến trang bị crash màn hình xanh trên iPhone/iPad. | **Tối ưu hóa ranh giới từ `\b` và xử lý vòng lặp Service Worker**, giúp ứng dụng tải mượt mà 100% trên mọi dòng iPhone, iPad, Android và trình duyệt WebKit. |
@@ -100,7 +100,7 @@ Sau đó mở trình duyệt web và truy cập địa chỉ: **`http://localhos
   - *Thị giác:* Mỗi từ có một bức tranh minh họa câu chuyện trong ví dụ đầu tiên.
   - *Thính giác:* **Tự động phát âm thanh chuẩn Anh (UK) khi mở từ hoặc hé lộ 1s**, hỗ trợ chuyển đổi giữa hai giọng đọc chuẩn Anh (Alice) và Mỹ (Sarah) cùng 6 âm thanh nền tự nhiên giúp tập trung (mưa rơi, thư viện, quán cà phê, rừng cây,...). Tự động hạ âm lượng nhạc nền (audio ducking) khi phát âm từ vựng.
   - *Vận động:* Typing Studio hỗ trợ luyện gõ phím rèn phản xạ chính tả theo chuẩn tốc độ WPM.
-- **Gợi nhớ chủ động (Active Recall) & Hé lộ 1 giây:** Nhìn tranh đoán từ, tự động ẩn chữ và nghĩa để kích hoạt phản xạ tư duy; hỗ trợ nút bấm con mắt 👁️ hé lộ từ vựng trong 1 giây kèm phát âm chuẩn UK để kiểm tra lại trí nhớ tức thời.
+- **Gợi nhớ chủ động (Active Recall) & Hé lộ 1 giây:** Nhìn tranh đoán từ, tự động ẩn chữ và nghĩa để kích hoạt phản xạ tư duy; hỗ trợ nút bấm con mắt 👁️ hé lộ từ vựng, phiên âm quốc tế UK và định nghĩa trong đúng 1 giây kèm phát âm chuẩn UK để kiểm tra lại trí nhớ tức thời.
 - **Xáo trộn thông minh (Smart Shuffle):** Tự động đảo ngẫu nhiên khi đổi chủ đề hoặc trình độ, loại bỏ tình trạng đoán trước thứ tự từ.
 - **Thuật toán lặp lại ngắt quãng FSRS:** Sắp xếp lịch ôn tập tối ưu cho trí nhớ dài hạn, chỉ ôn những từ chuẩn bị quên.
 - **Quyền riêng tư tuyệt đối:** Không cần tài khoản; hỗ trợ xuất (`Export`) và nhập (`Import`) tệp sao lưu tiến độ học tập JSON bất cứ lúc nào khi đổi máy.
@@ -119,6 +119,12 @@ pnpm test
 # Đóng gói bản dựng sản phẩm vào thư mục dist/
 pnpm run build
 ```
+
+### 🤖 Dành cho AI Agent & Lập trình viên tiếp quản
+Vui lòng xem chi tiết tại [AGENTS.md](AGENTS.md) để nắm các quy chuẩn cốt lõi:
+- **Quy ước đánh số Cache-Busting (`?v=N`):** Luôn dùng số nguyên tăng dần (`?v=6`, `?v=7`, `?v=8`,...), không dùng chuỗi chữ.
+- **Cơ chế Active Recall & Audio:** Kiến trúc hé lộ 1s kèm âm thanh UK và phiên âm quốc tế.
+- **Tương thích WebKit / Safari iOS:** Tuyệt đối không dùng regex lookbehind và service worker reload loop.
 
 ---
 

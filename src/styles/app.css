@@ -2074,6 +2074,16 @@ code {
   text-overflow: ellipsis;
   min-width: 0;
 }
+.tile-ipa {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  margin-top: 2px;
+}
 .tile-zh {
   grid-column: 1 / -1;
   margin-top: 3px;
@@ -4191,6 +4201,26 @@ a:hover .mark-needle,
 .tile-zh.is-revealed {
   color: var(--ink);
 }
+.tile-ipa.is-masked {
+  letter-spacing: 2px;
+  color: var(--ink-3);
+  opacity: 0.45;
+  font-size: 10px;
+}
+.tile-ipa.is-revealed {
+  color: var(--ochre);
+  font-weight: 500;
+  opacity: 1;
+}
+.row-ipa.is-masked {
+  opacity: 0.35;
+}
+.row-ipa.is-revealed {
+  color: var(--ochre);
+  font-weight: 500;
+  opacity: 1;
+}
+
 
 .row-peek-btn {
   display: inline-flex;

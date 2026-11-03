@@ -360,7 +360,7 @@ function VirtualGrid({
     Math.floor((width + gap) / ((width < 560 ? 150 : 188) + gap)),
   );
   const cell = (width - gap * (cols - 1)) / cols;
-  const rowH = cell + (width < 560 ? 62 : 74) + gap;
+  const rowH = cell + (width < 560 ? 76 : 86) + gap;
   const rows = Math.ceil(items.length / cols);
   const [a, b] = useWindowRange(box, rowH, rows, 8);
 
@@ -455,6 +455,13 @@ function VirtualGrid({
                 </span>
               </div>
               <span
+                className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+              >
+                {showWord ? (w.ipa || "") : "••••••"}
+              </span>
+              <span
                 className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
                 onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
                 title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
@@ -545,7 +552,12 @@ function VirtualList({
             >
               {showWord ? w.word : "••••••"}
             </span>
-            <span className="row-ipa ipa">{showWord ? w.ipa : ""}</span>
+            <span
+              className={`row-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+            >
+              {showWord ? w.ipa : ""}
+            </span>
             <span
               className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
               onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
