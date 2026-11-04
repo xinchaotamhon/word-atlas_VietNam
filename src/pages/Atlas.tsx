@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Grid3x3, List, Search, Shuffle, Sparkles, X } from "lucide-react";
+import { BookOpen, Coffee, Eye, EyeOff, GraduationCap, Grid3x3, List, Search, Shuffle, Sparkles, X } from "lucide-react";
 import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
@@ -6,7 +6,7 @@ import type { WordRef } from "../atlas/types";
 import { play } from "../lib/audio";
 import { morphFrom } from "../lib/motion";
 import { go, openWord, type Route } from "../lib/router";
-import { shuffle } from "../lib/text";
+import { shuffle, splitHighlight } from "../lib/text";
 import { isMastered } from "../store/srs";
 import { useStore } from "../store/store";
 import { Illustration } from "../ui/Illustration";
@@ -30,6 +30,63 @@ function readView(): View {
   } catch {
     return "grid";
   }
+}
+
+
+type StudyMode = "word" | "daily" | "ielts";
+const sentencesCache: Record<string, Record<string, [string, string]>> = {};
+
+function useSentences(mode: StudyMode) {
+  const [data, setData] = useState<Record<string, [string, string]> | null>(() => {
+    if (mode === "daily" && sentencesCache.daily) return sentencesCache.daily;
+    if (mode === "ielts" && sentencesCache.ielts) return sentencesCache.ielts;
+    return null;
+  });
+
+  useEffect(() => {
+    if (mode === "word") {
+      setData(null);
+      return;
+    }
+    const key = mode;
+    if (sentencesCache[key]) {
+      setData(sentencesCache[key]);
+      return;
+    }
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const file = mode === "daily" ? "sentences-daily.json" : "sentences-ielts.json";
+    let active = true;
+    fetch(`${base}/atlas/${file}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<Record<string, [string, string]>>;
+      })
+      .then((json) => {
+        sentencesCache[key] = json;
+        if (active) setData(json);
+      })
+      .catch((err) => {
+        console.error(`Không thể tải ${file}:`, err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [mode]);
+
+  return data;
+}
+
+function highlightHeadword(sentence: string, word: string): React.ReactNode {
+  if (!sentence) return "";
+  const parts = splitHighlight(sentence, word);
+  if (!parts) return sentence;
+  return (
+    <>
+      {parts[0]}
+      <mark className="mark-needle">{parts[1]}</mark>
+      {parts[2]}
+    </>
+  );
 }
 
 export function AtlasPage({
@@ -74,6 +131,9 @@ export function AtlasPage({
   };
   const topic = route.topic;
   const level = route.level;
+  const studyMode: StudyMode = route.mode === "daily" || route.mode === "ielts" ? route.mode : "word";
+  const sentences = useSentences(studyMode);
+
 
   // Auto re-shuffle once whenever topic or difficulty level changes
   const prevFilterRef = useRef<{ topic?: string; level?: string }>({ topic, level });
@@ -122,14 +182,40 @@ export function AtlasPage({
     <div className={`page atlas ${view === "galaxy" ? "is-galaxy" : ""}`}>
       <header className="atlas-head">
         <div>
-          <p className="eyebrow">Từ điển · {atlas.count.toLocaleString()} từ</p>
+          <p className="eyebrow">
+            {studyMode === "daily"
+              ? `Câu Hàng ngày · ${atlas.count.toLocaleString()} câu có âm thanh bản xứ`
+              : studyMode === "ielts"
+              ? `Ngữ cảnh IELTS · ${atlas.count.toLocaleString()} câu học thuật nâng cao`
+              : `Từ điển · ${atlas.count.toLocaleString()} từ`}
+          </p>
           <h1 className="display">
-            Mỗi một từ,
-            <br className="br-sm" />
-            đều có một bức tranh.
+            {studyMode === "daily" ? (
+              <>
+                Mỗi một câu,
+                <br className="br-sm" />
+                đều có một bức tranh.
+              </>
+            ) : studyMode === "ielts" ? (
+              <>
+                Mỗi một câu,
+                <br className="br-sm" />
+                thắp sáng ngữ cảnh IELTS.
+              </>
+            ) : (
+              <>
+                Mỗi một từ,
+                <br className="br-sm" />
+                đều có một bức tranh.
+              </>
+            )}
           </h1>
           <p className="lede">
-            {atlas.examples.toLocaleString()} câu ví dụ nguyên bản · Phát âm Anh/Mỹ · Phân loại theo độ khó và {atlas.topics.length} chủ đề IELTS
+            {studyMode === "daily"
+              ? "Ngữ cảnh đời sống thường nhật sinh động · 100% âm thanh chuẩn bản xứ · Luyện phản xạ câu qua tranh"
+              : studyMode === "ielts"
+              ? "Vận dụng câu học thuật chuẩn IELTS · Rèn luyện lập luận và ngữ cảnh nâng cao · Luyện phản xạ qua tranh"
+              : `${atlas.examples.toLocaleString()} câu ví dụ nguyên bản · Phát âm Anh/Mỹ · Phân loại theo độ khó và ${atlas.topics.length} chủ đề IELTS`}
           </p>
         </div>
         <label className="search">
@@ -152,6 +238,40 @@ export function AtlasPage({
           )}
         </label>
       </header>
+
+      
+      <div className="study-mode-tabs" role="tablist" aria-label="Chế độ học">
+        <button
+          type="button"
+          className={`study-mode-tab ${studyMode === "word" ? "is-active" : ""}`}
+          onClick={() => setFilter({ mode: undefined })}
+          role="tab"
+          aria-selected={studyMode === "word"}
+        >
+          <BookOpen size={16} />
+          <span>Từ vựng ({atlas.count.toLocaleString()})</span>
+        </button>
+        <button
+          type="button"
+          className={`study-mode-tab ${studyMode === "daily" ? "is-active" : ""}`}
+          onClick={() => setFilter({ mode: "daily" })}
+          role="tab"
+          aria-selected={studyMode === "daily"}
+        >
+          <Coffee size={16} />
+          <span>Câu Hàng ngày ({atlas.count.toLocaleString()})</span>
+        </button>
+        <button
+          type="button"
+          className={`study-mode-tab ${studyMode === "ielts" ? "is-active" : ""}`}
+          onClick={() => setFilter({ mode: "ielts" })}
+          role="tab"
+          aria-selected={studyMode === "ielts"}
+        >
+          <GraduationCap size={16} />
+          <span>Ngữ cảnh IELTS ({atlas.count.toLocaleString()})</span>
+        </button>
+      </div>
 
       <div className="filters">
         {view !== "galaxy" && (
@@ -285,9 +405,9 @@ export function AtlasPage({
           <p>Khu vực sao này chưa có từ nào. Hãy thử đổi điều kiện lọc.</p>
         </div>
       ) : view === "grid" ? (
-        <VirtualGrid items={list} cards={cards} hideWords={hideWords} />
+        <VirtualGrid items={list} cards={cards} hideWords={hideWords} studyMode={studyMode} sentences={sentences} />
       ) : (
-        <VirtualList items={list} cards={cards} hideWords={hideWords} />
+        <VirtualList items={list} cards={cards} hideWords={hideWords} studyMode={studyMode} sentences={sentences} />
       )}
     </div>
   );
@@ -346,10 +466,14 @@ function VirtualGrid({
   items,
   cards,
   hideWords,
+  studyMode = "word",
+  sentences,
 }: {
   items: WordRef[];
   cards: Record<string, { s: number; st: number }>;
   hideWords: boolean;
+  studyMode?: StudyMode;
+  sentences?: Record<string, [string, string]> | null;
 }) {
   const atlas = useAtlas();
   const box = useRef<HTMLDivElement>(null);
@@ -360,7 +484,8 @@ function VirtualGrid({
     Math.floor((width + gap) / ((width < 560 ? 150 : 188) + gap)),
   );
   const cell = (width - gap * (cols - 1)) / cols;
-  const rowH = cell + (width < 560 ? 76 : 86) + gap;
+  const isSentence = studyMode !== "word";
+  const rowH = cell + (isSentence ? (width < 560 ? 116 : 126) : (width < 560 ? 76 : 86)) + gap;
   const rows = Math.ceil(items.length / cols);
   const [a, b] = useWindowRange(box, rowH, rows, 8);
 
@@ -374,7 +499,15 @@ function VirtualGrid({
       window.clearTimeout(timerRef.current[id]);
     }
     setPeeking((prev) => ({ ...prev, [id]: true }));
-    void play(atlas.audio(w, "uk"), w.word, "uk");
+    if (studyMode === "daily") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex"), s, "uk");
+    } else if (studyMode === "ielts") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex2"), s, "uk");
+    } else {
+      void play(atlas.audio(w, "uk"), w.word, "uk");
+    }
     timerRef.current[id] = window.setTimeout(() => {
       setPeeking((prev) => {
         const next = { ...prev };
@@ -406,6 +539,9 @@ function VirtualGrid({
           : "";
         const isPeeking = !!peeking[w.id];
         const showWord = !hideWords || isPeeking;
+        const sentencePair = sentences?.[w.id];
+        const sentenceEn = sentencePair?.[0] || "";
+        const sentenceZh = sentencePair?.[1] || "";
 
         visible.push(
           <button
@@ -427,59 +563,113 @@ function VirtualGrid({
             <span className="tile-no">
               № {String(w.order + 1).padStart(4, "0")}
             </span>
-            <span className="tile-text">
-              <span
-                className={`tile-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                lang="en"
-                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
-              >
-                {showWord ? w.word : "••••••"}
-              </span>
-              <div className="tile-actions">
-                {hideWords && (
-                  <span
-                    className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => peek(w, e)}
-                    onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
-                    title="Hé lộ từ trong 1 giây"
-                    aria-label="Hé lộ từ trong 1 giây"
-                  >
-                    <Eye size={13} />
+            {isSentence ? (
+              <span className="tile-text tile-text-sentence">
+                <div className="tile-sentence-header">
+                  <span className="tile-word-sub" lang="en">
+                    {showWord ? w.word : "••••••"}
                   </span>
-                )}
-                <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
-                  {atlas.cefr[w.cefr]}
-                </span>
-              </div>
-              <div className="tile-meta-row">
+                  <div className="tile-actions">
+                    {w.pos && w.pos.length > 0 && (
+                      <span className="tile-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
+                        {w.pos.map((p) => (
+                          <span key={p} className="tile-pos-tag">
+                            {p}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    {hideWords && (
+                      <span
+                        className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => peek(w, e)}
+                        onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
+                        title="Hé lộ câu trong 1 giây"
+                        aria-label="Hé lộ câu trong 1 giây"
+                      >
+                        <Eye size={13} />
+                      </span>
+                    )}
+                    <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
+                      {atlas.cefr[w.cefr]}
+                    </span>
+                  </div>
+                </div>
+                <p
+                  className={`tile-sentence-en ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  lang="en"
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  title={hideWords && !isPeeking ? "Nhấp để nghe & xem trong 1s" : undefined}
+                >
+                  {showWord
+                    ? (sentenceEn ? highlightHeadword(sentenceEn, w.word) : w.word)
+                    : "••••••••••••••••••••••••••••••••••••••••"}
+                </p>
+                <p
+                  className={`tile-sentence-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  title={hideWords && !isPeeking ? "Nhấp để nghe & xem trong 1s" : undefined}
+                >
+                  {showWord ? (sentenceZh || w.zh) : "Nhấp 👁️ xem & nghe 1s"}
+                </p>
+              </span>
+            ) : (
+              <span className="tile-text">
                 <span
-                  className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  className={`tile-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  lang="en"
                   onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
                   title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
                 >
-                  {showWord ? (w.ipa || "") : "••••••"}
+                  {showWord ? w.word : "••••••"}
                 </span>
-                {w.pos && w.pos.length > 0 && (
-                  <span className="tile-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
-                    {w.pos.map((p) => (
-                      <span key={p} className="tile-pos-tag">
-                        {p}
-                      </span>
-                    ))}
+                <div className="tile-actions">
+                  {hideWords && (
+                    <span
+                      className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => peek(w, e)}
+                      onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
+                      title="Hé lộ từ trong 1 giây"
+                      aria-label="Hé lộ từ trong 1 giây"
+                    >
+                      <Eye size={13} />
+                    </span>
+                  )}
+                  <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
+                    {atlas.cefr[w.cefr]}
                   </span>
-                )}
-              </div>
-              <span
-                className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-                title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
-              >
-                {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
+                </div>
+                <div className="tile-meta-row">
+                  <span
+                    className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                    onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                    title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+                  >
+                    {showWord ? (w.ipa || "") : "••••••"}
+                  </span>
+                  {w.pos && w.pos.length > 0 && (
+                    <span className="tile-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
+                      {w.pos.map((p) => (
+                        <span key={p} className="tile-pos-tag">
+                          {p}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+                <span
+                  className={`tile-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+                >
+                  {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
+                </span>
               </span>
-            </span>
+            )}
           </button>,
         );
       }
@@ -494,15 +684,20 @@ function VirtualList({
   items,
   cards,
   hideWords,
+  studyMode = "word",
+  sentences,
 }: {
   items: WordRef[];
   cards: Record<string, { s: number; st: number }>;
   hideWords: boolean;
+  studyMode?: StudyMode;
+  sentences?: Record<string, [string, string]> | null;
 }) {
   const atlas = useAtlas();
   const accent = useStore((s) => s.settings.accent);
   const box = useRef<HTMLDivElement>(null);
-  const rowH = 68;
+  const isSentence = studyMode !== "word";
+  const rowH = isSentence ? 74 : 68;
   const [a, b] = useWindowRange(box, rowH, items.length, 8);
 
   const [peeking, setPeeking] = useState<Record<string, boolean>>({});
@@ -515,7 +710,15 @@ function VirtualList({
       window.clearTimeout(timerRef.current[id]);
     }
     setPeeking((prev) => ({ ...prev, [id]: true }));
-    void play(atlas.audio(w, "uk"), w.word, "uk");
+    if (studyMode === "daily") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex"), s, "uk");
+    } else if (studyMode === "ielts") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex2"), s, "uk");
+    } else {
+      void play(atlas.audio(w, "uk"), w.word, "uk");
+    }
     timerRef.current[id] = window.setTimeout(() => {
       setPeeking((prev) => {
         const next = { ...prev };
@@ -539,6 +742,9 @@ function VirtualList({
         const card = cards[w.id];
         const isPeeking = !!peeking[w.id];
         const showWord = !hideWords || isPeeking;
+        const sentencePair = sentences?.[w.id];
+        const sentenceEn = sentencePair?.[0] || "";
+        const sentenceZh = sentencePair?.[1] || "";
 
         return (
           <div
@@ -556,36 +762,58 @@ function VirtualList({
               topic={w.topic}
               className="row-art"
             />
-            <span className="row-word-wrap">
-              <span
-                className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                lang="en"
-                onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-              >
-                {showWord ? w.word : "••••••"}
-              </span>
-              {w.pos && w.pos.length > 0 && (
-                <span className="row-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
-                  {w.pos.map((p) => (
-                    <span key={p} className="tile-pos-tag">
-                      {p}
-                    </span>
-                  ))}
+            {isSentence ? (
+              <>
+                <span
+                  className={`row-sentence-en ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  lang="en"
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                >
+                  {showWord
+                    ? (sentenceEn ? highlightHeadword(sentenceEn, w.word) : w.word)
+                    : "••••••••••••••••••••••••••••••••"}
                 </span>
-              )}
-            </span>
-            <span
-              className={`row-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-            >
-              {showWord ? w.ipa : ""}
-            </span>
-            <span
-              className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-              onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-            >
-              {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
-            </span>
+                <span
+                  className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                >
+                  {showWord ? (sentenceZh || w.zh) : "Nhấp 👁️ xem & nghe 1s"}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="row-word-wrap">
+                  <span
+                    className={`row-word ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                    lang="en"
+                    onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  >
+                    {showWord ? w.word : "••••••"}
+                  </span>
+                  {w.pos && w.pos.length > 0 && (
+                    <span className="row-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
+                      {w.pos.map((p) => (
+                        <span key={p} className="tile-pos-tag">
+                          {p}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`row-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                >
+                  {showWord ? w.ipa : ""}
+                </span>
+                <span
+                  className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                >
+                  {showWord ? w.zh : "Nhấp 👁️ xem 1s"}
+                </span>
+              </>
+            )}
             {hideWords && (
               <span
                 className={`row-peek-btn ${isPeeking ? "is-peeking" : ""}`}
@@ -601,8 +829,8 @@ function VirtualList({
               className={`row-dot ${card ? (card.st === 2 && card.s >= 21 ? "is-mastered" : "is-learning") : ""}`}
             />
             <Speak
-              url={atlas.audio(w, accent)}
-              text={w.word}
+              url={studyMode === "daily" ? atlas.audio(w, "ex") : studyMode === "ielts" ? atlas.audio(w, "ex2") : atlas.audio(w, accent)}
+              text={isSentence ? sentenceEn : w.word}
               accent={accent}
               size="sm"
             />

@@ -3,7 +3,7 @@ import { transition } from "./motion";
 
 export type Route =
   | { page: "today" }
-  | { page: "atlas"; topic?: string; level?: string; q?: string; view?: string }
+  | { page: "atlas"; topic?: string; level?: string; q?: string; view?: string; mode?: "word" | "daily" | "ielts" }
   | { page: "learn" }
   | { page: "practice" }
   | { page: "me" }
@@ -21,8 +21,11 @@ function parse(hash: string): Location {
   const word = params.get("w");
   const seg = path.split("/").filter(Boolean);
   let route: Route = { page: "today" };
-  if (seg[0] === "atlas")
-    route = { page: "atlas", topic: params.get("topic") || undefined, level: params.get("level") || undefined, q: params.get("q") || undefined, view: params.get("view") || undefined };
+  if (seg[0] === "atlas") {
+    const rawMode = params.get("mode");
+    const mode = rawMode === "daily" || rawMode === "ielts" ? rawMode : undefined;
+    route = { page: "atlas", topic: params.get("topic") || undefined, level: params.get("level") || undefined, q: params.get("q") || undefined, view: params.get("view") || undefined, mode };
+  }
   else if (seg[0] === "learn") route = { page: "learn" };
   else if (seg[0] === "practice") route = { page: "practice" };
   else if (seg[0] === "me") route = { page: "me" };
@@ -38,6 +41,7 @@ export function href(route: Route, word?: string | null) {
     if (route.level) params.set("level", route.level);
     if (route.q) params.set("q", route.q);
     if (route.view) params.set("view", route.view);
+    if (route.mode && route.mode !== "word") params.set("mode", route.mode);
   }
   if (word) params.set("w", word);
   const q = params.toString();

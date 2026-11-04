@@ -18,7 +18,7 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
 
 > [!IMPORTANT]
 > **QUY TẮC BẮT BUỘC KHI GỬI LINK TEST HOẶC BÀN GIAO CHO NGƯỜI DÙNG:**
-> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=9`, `?v=9`,...
+> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=10`, `?v=9`,...
 > 2. **TUYỆT ĐỐI KHÔNG DÙNG** chuỗi chữ hoặc tên tính năng (ví dụ: `?v=uk-audio`, `?v=test`, v.v.).
 > 3. **Lý do:** Người dùng cần theo dõi phiên bản bằng số liên tục để biết mình đã tải đúng bản mới nhất, và trình duyệt di động (đặc biệt là Mobile Safari/Chrome iOS) cần query param mới để xóa triệt để cache của bundle cũ.
 
@@ -63,6 +63,19 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
   - Kho 7.298 từ có hơn 2.028 từ mang từ 2 đến 3 từ loại (như `ski` vừa là `v.` vừa là `n.`, `fast` là `adj. adv. v.`).
   - Dữ liệu từ loại được trích xuất từ toàn bộ `public/atlas/entries/*.json` và lưu vào phần tử thứ 8 (`r[7]`) của `public/atlas/index.json`.
   - Trên thẻ từ vựng (`VirtualGrid` & `VirtualList`), các nhãn từ loại (`.tile-pos-tag`) luôn hiển thị rõ ràng ngay cả khi đang bật chế độ ẩn chữ (Active Recall). Điều này giúp người học phân biệt các thẻ tranh gần giống nhau (như `ski` vs `skiing`) để suy ngẫm từ vựng chính xác.
+
+
+### 3.5. Chế độ học Câu ngữ cảnh đa năng (Daily & IELTS Sentence Modes)
+- **Tập tin chính:** `src/lib/router.ts`, `src/pages/Atlas.tsx`, `src/styles/app.css`, `public/atlas/sentences-daily.json`, `public/atlas/sentences-ielts.json`.
+- **Cơ chế:**
+  - Trang Từ điển (`AtlasPage`) hỗ trợ 3 chế độ học qua tham số URL `mode`:
+    1. `mode = "word"` (mặc định): Học từ vựng, phiên âm UK, từ loại và nghĩa.
+    2. `mode = "daily"`: Học 7.298 câu ví dụ Hàng ngày gắn liền với bức tranh (100% có file ghi âm mp3 bản xứ `audio/ex/`).
+    3. `mode = "ielts"`: Học 7.298 câu ví dụ Ngữ cảnh IELTS học thuật nâng cao (`audio/ex2/` và giọng đọc chuẩn).
+  - **Tải dữ liệu bất đồng bộ theo nhu cầu (On-Demand Loading):** Dữ liệu câu chỉ được nạp khi người học bấm chọn tab Câu Hàng ngày hoặc Câu IELTS, hoàn toàn không làm chậm tốc độ tải ban đầu của trang Từ vựng.
+  - **Cơ chế Active Recall cho câu:** Khi ở chế độ ẩn, câu tiếng Anh bị che dạng `••••••••••••••••••••••••••••••••••••••••`. Khi bấm con mắt 👁️ hé lộ 1 giây:
+    - Câu hiện ra trọn vẹn với từ vựng chính được highlight nổi bật bằng thẻ `<mark className="mark-needle">`.
+    - Tự động phát âm thanh giọng đọc của cả câu ví dụ (`ex` hoặc `ex2`).
 
 ## 4. Quy tắc vàng về tương thích WebKit / Safari iOS
 
