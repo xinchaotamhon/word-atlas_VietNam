@@ -1,4 +1,4 @@
-import { BookOpen, Coffee, Eye, EyeOff, GraduationCap, Grid3x3, List, Search, Shuffle, Sparkles, X } from "lucide-react";
+import { BookOpen, Coffee, Eye, EyeOff, GraduationCap, Grid3x3, List, Search, Shuffle, Sparkles, Volume2, X } from "lucide-react";
 import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
@@ -490,7 +490,9 @@ function VirtualGrid({
   const [a, b] = useWindowRange(box, rowH, rows, 8);
 
   const [peeking, setPeeking] = useState<Record<string, boolean>>({});
+  const [peekingIpa, setPeekingIpa] = useState<Record<string, boolean>>({});
   const timerRef = useRef<Record<string, number>>({});
+  const timerIpaRef = useRef<Record<string, number>>({});
 
   const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -518,10 +520,38 @@ function VirtualGrid({
     }, 1000);
   };
 
+  const peekIpa = (w: WordRef, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = w.id;
+    if (timerIpaRef.current[id]) {
+      window.clearTimeout(timerIpaRef.current[id]);
+    }
+    setPeekingIpa((prev) => ({ ...prev, [id]: true }));
+    if (studyMode === "daily") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex"), s, "uk");
+    } else if (studyMode === "ielts") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex2"), s, "uk");
+    } else {
+      void play(atlas.audio(w, "uk"), w.word, "uk");
+    }
+    timerIpaRef.current[id] = window.setTimeout(() => {
+      setPeekingIpa((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete timerIpaRef.current[id];
+    }, 1200);
+  };
+
   useEffect(() => {
     const timers = timerRef.current;
+    const ipaTimers = timerIpaRef.current;
     return () => {
       Object.values(timers).forEach((t) => window.clearTimeout(t));
+      Object.values(ipaTimers).forEach((t) => window.clearTimeout(t));
     };
   }, []);
 
@@ -538,7 +568,9 @@ function VirtualGrid({
             : "is-learning"
           : "";
         const isPeeking = !!peeking[w.id];
+        const isPeekingIpa = !!peekingIpa[w.id];
         const showWord = !hideWords || isPeeking;
+        const showIpa = !hideWords || isPeeking || isPeekingIpa;
         const sentencePair = sentences?.[w.id];
         const sentenceEn = sentencePair?.[0] || "";
         const sentenceZh = sentencePair?.[1] || "";
@@ -580,17 +612,30 @@ function VirtualGrid({
                       </span>
                     )}
                     {hideWords && (
-                      <span
-                        className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => peek(w, e)}
-                        onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
-                        title="Hé lộ câu trong 1 giây"
-                        aria-label="Hé lộ câu trong 1 giây"
-                      >
-                        <Eye size={13} />
-                      </span>
+                      <>
+                        <span
+                          className={`tile-peek-btn tile-peek-audio-btn ${isPeekingIpa ? "is-peeking-audio" : ""}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => peekIpa(w, e)}
+                          onKeyDown={(e) => e.key === "Enter" && peekIpa(w, e as unknown as React.MouseEvent)}
+                          title="Nghe phát âm câu (không hiện chữ)"
+                          aria-label="Nghe phát âm câu"
+                        >
+                          <Volume2 size={13} />
+                        </span>
+                        <span
+                          className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => peek(w, e)}
+                          onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
+                          title="Hé lộ câu trong 1 giây"
+                          aria-label="Hé lộ câu trong 1 giây"
+                        >
+                          <Eye size={13} />
+                        </span>
+                      </>
                     )}
                     <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
                       {atlas.cefr[w.cefr]}
@@ -627,17 +672,30 @@ function VirtualGrid({
                 </span>
                 <div className="tile-actions">
                   {hideWords && (
-                    <span
-                      className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => peek(w, e)}
-                      onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
-                      title="Hé lộ từ trong 1 giây"
-                      aria-label="Hé lộ từ trong 1 giây"
-                    >
-                      <Eye size={13} />
-                    </span>
+                    <>
+                      <span
+                        className={`tile-peek-btn tile-peek-audio-btn ${isPeekingIpa ? "is-peeking-audio" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => peekIpa(w, e)}
+                        onKeyDown={(e) => e.key === "Enter" && peekIpa(w, e as unknown as React.MouseEvent)}
+                        title="Nghe phát âm & xem phiên âm (không hiện chữ)"
+                        aria-label="Nghe phát âm & xem phiên âm"
+                      >
+                        <Volume2 size={13} />
+                      </span>
+                      <span
+                        className={`tile-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => peek(w, e)}
+                        onKeyDown={(e) => e.key === "Enter" && peek(w, e as unknown as React.MouseEvent)}
+                        title="Hé lộ từ trong 1 giây"
+                        aria-label="Hé lộ từ trong 1 giây"
+                      >
+                        <Eye size={13} />
+                      </span>
+                    </>
                   )}
                   <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
                     {atlas.cefr[w.cefr]}
@@ -645,11 +703,11 @@ function VirtualGrid({
                 </div>
                 <div className="tile-meta-row">
                   <span
-                    className={`tile-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                    onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
-                    title={hideWords && !isPeeking ? "Nhấp để xem trong 1s" : undefined}
+                    className={`tile-ipa ipa ${showIpa ? (isPeeking || isPeekingIpa ? "is-revealed" : "") : "is-masked"}`}
+                    onClick={hideWords && !isPeeking && !isPeekingIpa ? (e) => peekIpa(w, e) : undefined}
+                    title={hideWords && !isPeeking && !isPeekingIpa ? "Nhấp để nghe & xem phiên âm" : undefined}
                   >
-                    {showWord ? (w.ipa || "") : "••••••"}
+                    {showIpa ? (w.ipa || "") : "••••••"}
                   </span>
                   {w.pos && w.pos.length > 0 && (
                     <span className="tile-pos-badges" title={`Từ loại: ${w.pos.join(", ")}`}>
@@ -701,7 +759,9 @@ function VirtualList({
   const [a, b] = useWindowRange(box, rowH, items.length, 8);
 
   const [peeking, setPeeking] = useState<Record<string, boolean>>({});
+  const [peekingIpa, setPeekingIpa] = useState<Record<string, boolean>>({});
   const timerRef = useRef<Record<string, number>>({});
+  const timerIpaRef = useRef<Record<string, number>>({});
 
   const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -729,10 +789,38 @@ function VirtualList({
     }, 1000);
   };
 
+  const peekIpa = (w: WordRef, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = w.id;
+    if (timerIpaRef.current[id]) {
+      window.clearTimeout(timerIpaRef.current[id]);
+    }
+    setPeekingIpa((prev) => ({ ...prev, [id]: true }));
+    if (studyMode === "daily") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex"), s, "uk");
+    } else if (studyMode === "ielts") {
+      const s = sentences?.[w.id]?.[0] || w.word;
+      void play(atlas.audio(w, "ex2"), s, "uk");
+    } else {
+      void play(atlas.audio(w, "uk"), w.word, "uk");
+    }
+    timerIpaRef.current[id] = window.setTimeout(() => {
+      setPeekingIpa((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete timerIpaRef.current[id];
+    }, 1200);
+  };
+
   useEffect(() => {
     const timers = timerRef.current;
+    const ipaTimers = timerIpaRef.current;
     return () => {
       Object.values(timers).forEach((t) => window.clearTimeout(t));
+      Object.values(ipaTimers).forEach((t) => window.clearTimeout(t));
     };
   }, []);
 
@@ -741,7 +829,9 @@ function VirtualList({
       {items.slice(a, b).map((w, i) => {
         const card = cards[w.id];
         const isPeeking = !!peeking[w.id];
+        const isPeekingIpa = !!peekingIpa[w.id];
         const showWord = !hideWords || isPeeking;
+        const showIpa = !hideWords || isPeeking || isPeekingIpa;
         const sentencePair = sentences?.[w.id];
         const sentenceEn = sentencePair?.[0] || "";
         const sentenceZh = sentencePair?.[1] || "";
@@ -801,10 +891,10 @@ function VirtualList({
                   )}
                 </span>
                 <span
-                  className={`row-ipa ipa ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
-                  onClick={hideWords && !isPeeking ? (e) => peek(w, e) : undefined}
+                  className={`row-ipa ipa ${showIpa ? (isPeeking || isPeekingIpa ? "is-revealed" : "") : "is-masked"}`}
+                  onClick={hideWords && !isPeeking && !isPeekingIpa ? (e) => peekIpa(w, e) : undefined}
                 >
-                  {showWord ? w.ipa : ""}
+                  {showIpa ? w.ipa : ""}
                 </span>
                 <span
                   className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
@@ -815,15 +905,26 @@ function VirtualList({
               </>
             )}
             {hideWords && (
-              <span
-                className={`row-peek-btn ${isPeeking ? "is-peeking" : ""}`}
-                role="button"
-                tabIndex={0}
-                onClick={(e) => peek(w, e)}
-                title="Hé lộ 1s"
-              >
-                <Eye size={15} />
-              </span>
+              <>
+                <span
+                  className={`row-peek-btn row-peek-audio-btn ${isPeekingIpa ? "is-peeking-audio" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => peekIpa(w, e)}
+                  title="Nghe phát âm & xem phiên âm"
+                >
+                  <Volume2 size={15} />
+                </span>
+                <span
+                  className={`row-peek-btn ${isPeeking ? "is-peeking" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => peek(w, e)}
+                  title="Hé lộ toàn bộ 1s"
+                >
+                  <Eye size={15} />
+                </span>
+              </>
             )}
             <span
               className={`row-dot ${card ? (card.st === 2 && card.s >= 21 ? "is-mastered" : "is-learning") : ""}`}

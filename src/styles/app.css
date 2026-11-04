@@ -4436,3 +4436,32 @@ a:hover .mark-needle,
 .row-sentence-en.is-revealed {
   color: var(--terra);
 }
+
+/* Speaker Peek Button (Listen & Show IPA without revealing word) */
+.tile-peek-audio-btn {
+  color: var(--ink-2);
+}
+.tile-peek-audio-btn:hover {
+  color: var(--ochre);
+  border-color: var(--ochre);
+  background: color-mix(in oklab, var(--ochre) 16%, transparent);
+}
+.tile-peek-audio-btn.is-peeking-audio {
+  color: #fff;
+  background: var(--ochre);
+  border-color: var(--ochre);
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.5);
+}
+
+.row-peek-audio-btn {
+  color: var(--ink-2);
+}
+.row-peek-audio-btn:hover {
+  color: var(--ochre);
+  border-color: var(--ochre);
+}
+.row-peek-audio-btn.is-peeking-audio {
+  color: #fff;
+  background: var(--ochre);
+  border-color: var(--ochre);
+}

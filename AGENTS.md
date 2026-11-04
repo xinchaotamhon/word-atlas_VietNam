@@ -18,7 +18,7 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
 
 > [!IMPORTANT]
 > **QUY TẮC BẮT BUỘC KHI GỬI LINK TEST HOẶC BÀN GIAO CHO NGƯỜI DÙNG:**
-> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=10`, `?v=9`,...
+> 1. Luôn dùng tham số phiên bản dạng **số nguyên lũy tiến**: `?v=6`, `?v=7`, `?v=11`, `?v=9`,...
 > 2. **TUYỆT ĐỐI KHÔNG DÙNG** chuỗi chữ hoặc tên tính năng (ví dụ: `?v=uk-audio`, `?v=test`, v.v.).
 > 3. **Lý do:** Người dùng cần theo dõi phiên bản bằng số liên tục để biết mình đã tải đúng bản mới nhất, và trình duyệt di động (đặc biệt là Mobile Safari/Chrome iOS) cần query param mới để xóa triệt để cache của bundle cũ.
 
@@ -76,6 +76,17 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
   - **Cơ chế Active Recall cho câu:** Khi ở chế độ ẩn, câu tiếng Anh bị che dạng `••••••••••••••••••••••••••••••••••••••••`. Khi bấm con mắt 👁️ hé lộ 1 giây:
     - Câu hiện ra trọn vẹn với từ vựng chính được highlight nổi bật bằng thẻ `<mark className="mark-needle">`.
     - Tự động phát âm thanh giọng đọc của cả câu ví dụ (`ex` hoặc `ex2`).
+
+
+### 3.6. Nút loa gợi ý phát âm & phiên âm độc lập (Audio & IPA Hint Button)
+- **Tập tin chính:** `src/pages/Atlas.tsx`, `src/styles/app.css`.
+- **Cơ chế:**
+  - Ngay cạnh nút con mắt 👁️ trên mỗi card (`VirtualGrid` & `VirtualList`), bổ sung thêm nút biểu tượng loa 🔊 (`<Volume2 />` class `.tile-peek-audio-btn`).
+  - Khi người học bấm nút loa này (hoặc nhấp trực tiếp vào dòng phiên âm bị che):
+    1. Kích hoạt phát âm thanh chuẩn của từ hoặc câu.
+    2. Hé lộ phiên âm quốc tế UK (`w.ipa`) trong 1,2 giây với màu ochre vàng đất nổi bật (`.is-peeking-audio` & `.is-revealed`).
+    3. **Đặc biệt:** Mặt chữ tiếng Anh (`w.word` hoặc câu tiếng Anh) **VẪN GIỮ NGUYÊN TRẠNG THÁI BỊ ẨN** (`••••••`).
+  - Giúp người học có thể kiểm tra thính giác và ký hiệu phiên âm trước mà không bị lộ chính tả tiếng Anh.
 
 ## 4. Quy tắc vàng về tương thích WebKit / Safari iOS
 
