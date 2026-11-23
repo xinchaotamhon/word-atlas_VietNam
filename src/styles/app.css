@@ -4474,3 +4474,227 @@ a:hover .mark-needle,
   background: var(--ochre);
   border-color: var(--ochre);
 }
+
+/* ==========================================================================
+   Inline Card Typing Practice (Word Atlas)
+   ========================================================================== */
+
+/* Keyboard Action Buttons */
+.tile-typing-btn {
+  color: var(--ink-2);
+}
+.tile-typing-btn:hover {
+  color: var(--terra);
+  border-color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+.tile-typing-btn.is-typing-on {
+  color: #fff;
+  background: var(--terra);
+  border-color: var(--terra);
+  box-shadow: 0 0 10px rgba(224, 90, 71, 0.5);
+}
+
+.row-typing-btn {
+  color: var(--ink-2);
+}
+.row-typing-btn:hover {
+  color: var(--terra);
+  border-color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+.row-typing-btn.is-typing-on {
+  color: #fff;
+  background: var(--terra);
+  border-color: var(--terra);
+  box-shadow: 0 0 10px rgba(224, 90, 71, 0.5);
+}
+
+/* Card active typing state border */
+.tile.is-typing-card {
+  border-color: var(--terra);
+  box-shadow: 0 0 20px -2px rgba(224, 90, 71, 0.45);
+}
+.row.is-typing-row {
+  border-color: var(--terra);
+  box-shadow: 0 0 16px -2px rgba(224, 90, 71, 0.35);
+}
+
+/* Grid Inline Typing Container */
+.tile-inline-typing {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 8px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  overflow: hidden;
+}
+
+.tile-typing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.tile-typing-hint {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 500;
+}
+
+.tile-typing-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  background: color-mix(in oklab, var(--line) 40%, transparent);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.tile-typing-close:hover {
+  color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+
+.tile-typing-prompt {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  word-break: break-word;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.tile-typing-prompt span {
+  border-radius: 2px;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.tile-typing-prompt span.is-ok {
+  color: #fff;
+  background: var(--terra);
+  padding: 0 1px;
+  font-weight: 600;
+}
+.tile-typing-prompt span.is-bad {
+  color: #fff;
+  background: #dc2626;
+  padding: 0 1px;
+  font-weight: 600;
+}
+.tile-typing-prompt span.is-caret {
+  box-shadow: -2px 0 0 var(--terra);
+  animation: caret 1s steps(1) infinite;
+}
+
+.tile-typing-success {
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.14);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  width: fit-content;
+}
+
+.tile-typing-input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  cursor: text;
+}
+
+/* List Inline Typing Container */
+.row-inline-typing {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 10px;
+  position: relative;
+  text-align: left;
+}
+
+.row-typing-hint {
+  font-size: 12px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.row-typing-prompt {
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-3);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-typing-prompt span {
+  border-radius: 2px;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.row-typing-prompt span.is-ok {
+  color: #fff;
+  background: var(--terra);
+  padding: 0 2px;
+  font-weight: 600;
+}
+.row-typing-prompt span.is-bad {
+  color: #fff;
+  background: #dc2626;
+  padding: 0 2px;
+  font-weight: 600;
+}
+.row-typing-prompt span.is-caret {
+  box-shadow: -2px 0 0 var(--terra);
+  animation: caret 1s steps(1) infinite;
+}
+
+.row-typing-success {
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.row-typing-input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  cursor: text;
+}
+

@@ -1,4 +1,6 @@
-import { BookOpen, Coffee, Eye, EyeOff, GraduationCap, Grid3x3, List, Search, Shuffle, Sparkles, Volume2, X } from "lucide-react";
+import { BookOpen, Coffee, Eye, EyeOff, GraduationCap, Grid3x3, Keyboard, List, Search, Shuffle, Sparkles, Volume2, X } from "lucide-react";
+import { clean, same, typingDelta } from "../lib/typing";
+import { cue } from "../lib/sound";
 import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
@@ -135,6 +137,40 @@ export function AtlasPage({
   const sentences = useSentences(studyMode);
 
 
+  // Multi-level selection with cascading lower levels
+  const selectedLevels = useMemo(() => {
+    if (!level) return [];
+    return level.split(",").filter((l) => atlas.cefr.includes(l));
+  }, [level, atlas.cefr]);
+
+  const handleLevelClick = (l: string) => {
+    const idx = atlas.cefr.indexOf(l);
+    if (idx < 0) return;
+    const isCurrentlySelected = selectedLevels.includes(l);
+    let newLevels: string[];
+    if (selectedLevels.length === 0) {
+      // Khi chưa chọn gì: bấm cấp nào thì tự động chọn từ A1 đến cấp đó
+      newLevels = atlas.cefr.slice(0, idx + 1);
+    } else if (isCurrentlySelected) {
+      // Khi đang chọn: cho phép nhấp tắt riêng cấp độ này
+      newLevels = selectedLevels.filter((x) => x !== l);
+    } else {
+      // Chưa chọn cấp này: nếu chọn cấp cao hơn mức cao nhất hiện tại, mở rộng từ A1 đến cấp đó
+      const maxCurrentIdx = Math.max(...selectedLevels.map((x) => atlas.cefr.indexOf(x)));
+      if (idx > maxCurrentIdx) {
+        newLevels = Array.from(new Set([...selectedLevels, ...atlas.cefr.slice(0, idx + 1)]));
+      } else {
+        newLevels = [...selectedLevels, l];
+      }
+    }
+    newLevels.sort((a, b) => atlas.cefr.indexOf(a) - atlas.cefr.indexOf(b));
+    if (newLevels.length === 0 || newLevels.length === atlas.cefr.length) {
+      setFilter({ level: undefined });
+    } else {
+      setFilter({ level: newLevels.join(",") });
+    }
+  };
+
   // Auto re-shuffle once whenever topic or difficulty level changes
   const prevFilterRef = useRef<{ topic?: string; level?: string }>({ topic, level });
   useEffect(() => {
@@ -160,11 +196,10 @@ export function AtlasPage({
   const list = useMemo(() => {
     const saved = new Set(bookmarks);
     const ti = topic ? atlas.topics.findIndex((t) => t[0] === topic) : -1;
-    const li = level ? atlas.cefr.indexOf(level) : -1;
     const base = q.trim() ? searchAtlas(atlas, q, 5000) : atlas.words;
     const filtered = base.filter((w) => {
       if (ti >= 0 && w.topic !== ti) return false;
-      if (li >= 0 && w.cefr !== li) return false;
+      if (selectedLevels.length > 0 && !selectedLevels.includes(atlas.cefr[w.cefr])) return false;
       const c = cards[w.id];
       if (status === "new") return !c;
       if (status === "learning") return !!c && !isMastered(c);
@@ -173,7 +208,7 @@ export function AtlasPage({
       return true;
     });
     return isShuffled && !q.trim() ? shuffle(filtered, shuffleSeed) : filtered;
-  }, [atlas, q, topic, level, status, cards, bookmarks, isShuffled, shuffleSeed]);
+  }, [atlas, q, topic, selectedLevels, status, cards, bookmarks, isShuffled, shuffleSeed]);
 
   const setFilter = (patch: Partial<Extract<Route, { page: "atlas" }>>) =>
     go({ page: "atlas", topic, level, view: route.view, ...patch }, null, true);
@@ -278,7 +313,7 @@ export function AtlasPage({
           <>
             <div className="chips chips-scroll" role="group" aria-label="Độ khó">
               <button
-                className={`chip-btn ${!level ? "is-on" : ""}`}
+                className={`chip-btn ${selectedLevels.length === 0 || selectedLevels.length === atlas.cefr.length ? "is-on" : ""}`}
                 onClick={() => setFilter({ level: undefined })}
               >
                 Tất cả độ khó
@@ -286,10 +321,9 @@ export function AtlasPage({
               {atlas.cefr.map((l) => (
                 <button
                   key={l}
-                  className={`chip-btn lv lv-${l} ${level === l ? "is-on" : ""}`}
-                  onClick={() =>
-                    setFilter({ level: level === l ? undefined : l })
-                  }
+                  className={`chip-btn lv lv-${l} ${selectedLevels.includes(l) ? "is-on" : ""}`}
+                  onClick={() => handleLevelClick(l)}
+                  title={`Độ khó ${l} (Bấm để bật/tắt hoặc chọn từ A1 đến ${l})`}
                 >
                   {l}
                 </button>
@@ -494,6 +528,44 @@ function VirtualGrid({
   const timerRef = useRef<Record<string, number>>({});
   const timerIpaRef = useRef<Record<string, number>>({});
 
+  // Inline typing practice state
+  const [typingId, setTypingId] = useState<string | null>(null);
+  const [typedValue, setTypedValue] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const typingInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleTyping = (w: WordRef, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typingId === w.id) {
+      setTypingId(null);
+      setTypedValue("");
+      setIsSuccess(false);
+    } else {
+      setTypingId(w.id);
+      setTypedValue("");
+      setIsSuccess(false);
+      setTimeout(() => typingInputRef.current?.focus(), 40);
+    }
+  };
+
+  const handleTypingChange = (next: string, target: string, w: WordRef) => {
+    if (isSuccess) return;
+    const d = typingDelta(typedValue, next, target);
+    if (d.total > 0) void cue("key");
+    setTypedValue(next);
+    if (clean(next).length >= clean(target).length && same(next.trimEnd(), target)) {
+      setIsSuccess(true);
+      void cue("correct");
+      const audioUrl = studyMode === "daily"
+        ? atlas.audio(w, "ex")
+        : studyMode === "ielts"
+          ? atlas.audio(w, "ex2")
+          : atlas.audio(w, "uk");
+      const audioText = isSentence ? (sentences?.[w.id]?.[0] || w.word) : w.word;
+      void play(audioUrl, audioText, "uk");
+    }
+  };
+
   const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
     const id = w.id;
@@ -569,22 +641,31 @@ function VirtualGrid({
           : "";
         const isPeeking = !!peeking[w.id];
         const isPeekingIpa = !!peekingIpa[w.id];
+        const isTyping = typingId === w.id;
         const showWord = !hideWords || isPeeking;
         const showIpa = !hideWords || isPeeking || isPeekingIpa;
         const sentencePair = sentences?.[w.id];
         const sentenceEn = sentencePair?.[0] || "";
         const sentenceZh = sentencePair?.[1] || "";
+        const target = isSentence ? (sentenceEn || w.word) : w.word;
+        const hintZh = isSentence ? (sentenceZh || w.zh) : w.zh;
 
         visible.push(
           <button
             key={w.id}
-            className={`tile ${st} ${isPeeking ? "is-peeking-card" : ""}`}
+            className={`tile ${st} ${isPeeking ? "is-peeking-card" : ""} ${isTyping ? "is-typing-card" : ""}`}
             style={{
               transform: `translate(${c * (cell + gap)}px, ${r * rowH}px)`,
               width: cell,
               height: rowH - gap,
             }}
-            onClick={(e) => morphFrom(e.currentTarget.querySelector<HTMLElement>(".illo"), () => openWord(w.id))}
+            onClick={(e) => {
+              if (isTyping) {
+                typingInputRef.current?.focus();
+                return;
+              }
+              morphFrom(e.currentTarget.querySelector<HTMLElement>(".illo"), () => openWord(w.id));
+            }}
           >
             <Illustration
               src={atlas.img(w, "thumb")}
@@ -595,7 +676,90 @@ function VirtualGrid({
             <span className="tile-no">
               № {String(w.order + 1).padStart(4, "0")}
             </span>
-            {isSentence ? (
+            {isTyping ? (
+              <span
+                className="tile-text tile-inline-typing"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  typingInputRef.current?.focus();
+                }}
+              >
+                <div className="tile-typing-header">
+                  <span className="tile-typing-hint" title={hintZh}>
+                    {hintZh}
+                  </span>
+                  <span
+                    className="tile-typing-close"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTypingId(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.stopPropagation();
+                        setTypingId(null);
+                      }
+                    }}
+                    title="Đóng chế độ gõ (Esc)"
+                    aria-label="Đóng"
+                  >
+                    <X size={12} />
+                  </span>
+                </div>
+                <div className="tile-typing-prompt" lang="en">
+                  {Array.from(target).map((ch, k) => {
+                    const t = typedValue[k];
+                    const cls =
+                      t === undefined
+                        ? k === typedValue.length
+                          ? "is-caret"
+                          : ""
+                        : same(t, ch)
+                          ? "is-ok"
+                          : "is-bad";
+                    const show =
+                      t === undefined
+                        ? ch === " "
+                          ? " "
+                          : /[A-Za-z0-9]/.test(ch)
+                            ? "·"
+                            : ch
+                        : ch;
+                    return (
+                      <span key={k} className={cls}>
+                        {show}
+                      </span>
+                    );
+                  })}
+                </div>
+                {isSuccess && (
+                  <div className="tile-typing-success">
+                    <span>✓ Chính xác!</span>
+                  </div>
+                )}
+                <input
+                  ref={typingInputRef}
+                  className="tile-typing-input"
+                  value={typedValue}
+                  onChange={(ev) => handleTypingChange(ev.target.value, target, w)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Escape") {
+                      ev.stopPropagation();
+                      setTypingId(null);
+                    }
+                  }}
+                  onClick={(ev) => ev.stopPropagation()}
+                  autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Gõ từ để luyện tập"
+                />
+              </span>
+            ) : isSentence ? (
               <span className="tile-text tile-text-sentence">
                 <div className="tile-sentence-header">
                   <span className="tile-word-sub" lang="en">
@@ -637,6 +801,17 @@ function VirtualGrid({
                         </span>
                       </>
                     )}
+                    <span
+                      className={`tile-peek-btn tile-typing-btn ${isTyping ? "is-typing-on" : ""}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => toggleTyping(w, e)}
+                      onKeyDown={(e) => e.key === "Enter" && toggleTyping(w, e as unknown as React.MouseEvent)}
+                      title={isTyping ? "Tắt luyện gõ" : "Luyện gõ câu này (Đánh chữ lại)"}
+                      aria-label="Luyện gõ câu này"
+                    >
+                      <Keyboard size={13} />
+                    </span>
                     <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
                       {atlas.cefr[w.cefr]}
                     </span>
@@ -697,6 +872,17 @@ function VirtualGrid({
                       </span>
                     </>
                   )}
+                  <span
+                    className={`tile-peek-btn tile-typing-btn ${isTyping ? "is-typing-on" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => toggleTyping(w, e)}
+                    onKeyDown={(e) => e.key === "Enter" && toggleTyping(w, e as unknown as React.MouseEvent)}
+                    title={isTyping ? "Tắt luyện gõ" : "Luyện gõ từ này (Đánh chữ lại)"}
+                    aria-label="Luyện gõ từ này"
+                  >
+                    <Keyboard size={13} />
+                  </span>
                   <span className={`tile-lv lv-${atlas.cefr[w.cefr]}`}>
                     {atlas.cefr[w.cefr]}
                   </span>
@@ -762,6 +948,44 @@ function VirtualList({
   const [peekingIpa, setPeekingIpa] = useState<Record<string, boolean>>({});
   const timerRef = useRef<Record<string, number>>({});
   const timerIpaRef = useRef<Record<string, number>>({});
+
+  // Inline typing practice state
+  const [typingId, setTypingId] = useState<string | null>(null);
+  const [typedValue, setTypedValue] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const typingInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleTyping = (w: WordRef, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typingId === w.id) {
+      setTypingId(null);
+      setTypedValue("");
+      setIsSuccess(false);
+    } else {
+      setTypingId(w.id);
+      setTypedValue("");
+      setIsSuccess(false);
+      setTimeout(() => typingInputRef.current?.focus(), 40);
+    }
+  };
+
+  const handleTypingChange = (next: string, target: string, w: WordRef) => {
+    if (isSuccess) return;
+    const d = typingDelta(typedValue, next, target);
+    if (d.total > 0) void cue("key");
+    setTypedValue(next);
+    if (clean(next).length >= clean(target).length && same(next.trimEnd(), target)) {
+      setIsSuccess(true);
+      void cue("correct");
+      const audioUrl = studyMode === "daily"
+        ? atlas.audio(w, "ex")
+        : studyMode === "ielts"
+          ? atlas.audio(w, "ex2")
+          : atlas.audio(w, "uk");
+      const audioText = isSentence ? (sentences?.[w.id]?.[0] || w.word) : w.word;
+      void play(audioUrl, audioText, "uk");
+    }
+  };
 
   const peek = (w: WordRef, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -830,21 +1054,33 @@ function VirtualList({
         const card = cards[w.id];
         const isPeeking = !!peeking[w.id];
         const isPeekingIpa = !!peekingIpa[w.id];
+        const isTyping = typingId === w.id;
         const showWord = !hideWords || isPeeking;
         const showIpa = !hideWords || isPeeking || isPeekingIpa;
         const sentencePair = sentences?.[w.id];
         const sentenceEn = sentencePair?.[0] || "";
         const sentenceZh = sentencePair?.[1] || "";
+        const target = isSentence ? (sentenceEn || w.word) : w.word;
+        const hintZh = isSentence ? (sentenceZh || w.zh) : w.zh;
 
         return (
           <div
             key={w.id}
-            className={`row ${isPeeking ? "is-peeking-row" : ""}`}
+            className={`row ${isPeeking ? "is-peeking-row" : ""} ${isTyping ? "is-typing-row" : ""}`}
             style={{ transform: `translateY(${(a + i) * rowH}px)` }}
-            onClick={() => openWord(w.id)}
+            onClick={() => {
+              if (isTyping) {
+                typingInputRef.current?.focus();
+                return;
+              }
+              openWord(w.id);
+            }}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && openWord(w.id)}
+            onKeyDown={(e) => {
+              if (isTyping) return;
+              e.key === "Enter" && openWord(w.id);
+            }}
           >
             <Illustration
               src={atlas.img(w, "thumb")}
@@ -852,7 +1088,69 @@ function VirtualList({
               topic={w.topic}
               className="row-art"
             />
-            {isSentence ? (
+            {isTyping ? (
+              <div
+                className="row-inline-typing"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  typingInputRef.current?.focus();
+                }}
+              >
+                <div className="row-typing-hint" title={hintZh}>
+                  {hintZh}
+                </div>
+                <div className="row-typing-prompt" lang="en">
+                  {Array.from(target).map((ch, k) => {
+                    const t = typedValue[k];
+                    const cls =
+                      t === undefined
+                        ? k === typedValue.length
+                          ? "is-caret"
+                          : ""
+                        : same(t, ch)
+                          ? "is-ok"
+                          : "is-bad";
+                    const show =
+                      t === undefined
+                        ? ch === " "
+                          ? " "
+                          : /[A-Za-z0-9]/.test(ch)
+                            ? "·"
+                            : ch
+                        : ch;
+                    return (
+                      <span key={k} className={cls}>
+                        {show}
+                      </span>
+                    );
+                  })}
+                </div>
+                {isSuccess && (
+                  <div className="row-typing-success">
+                    <span>✓ Chính xác!</span>
+                  </div>
+                )}
+                <input
+                  ref={typingInputRef}
+                  className="row-typing-input"
+                  value={typedValue}
+                  onChange={(ev) => handleTypingChange(ev.target.value, target, w)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Escape") {
+                      ev.stopPropagation();
+                      setTypingId(null);
+                    }
+                  }}
+                  onClick={(ev) => ev.stopPropagation()}
+                  autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Gõ từ để luyện tập"
+                />
+              </div>
+            ) : isSentence ? (
               <>
                 <span
                   className={`row-sentence-en ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
@@ -927,6 +1225,15 @@ function VirtualList({
               </>
             )}
             <span
+              className={`row-peek-btn row-typing-btn ${isTyping ? "is-typing-on" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={(e) => toggleTyping(w, e)}
+              title={isTyping ? "Tắt luyện gõ" : "Luyện gõ từ này (Đánh chữ lại)"}
+            >
+              <Keyboard size={15} />
+            </span>
+            <span
               className={`row-dot ${card ? (card.st === 2 && card.s >= 21 ? "is-mastered" : "is-learning") : ""}`}
             />
             <Speak
@@ -941,3 +1248,4 @@ function VirtualList({
     </div>
   );
 }
+

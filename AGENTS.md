@@ -95,6 +95,22 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
   1. **Việt hóa 100% dữ liệu:** Dịch toàn bộ 7.298 định nghĩa từ, 7.298 câu ví dụ Hàng ngày, 7.298 câu ngữ cảnh IELTS, 24.722 cụm từ thường gặp (`col`), 7.280 mẹo ghi nhớ (`tip`), 6.295 nét nghĩa phụ (`senses`) và 19 chủ đề học tập sang tiếng Việt chuẩn, tự nhiên. Không còn ký tự tiếng Trung nào trong toàn bộ ứng dụng.
   2. **Che câu thông minh (Smart Masking) & Khắc phục tràn viền:** Thay thế chuỗi 40 dấu chấm liền nhau cũ bằng cơ chế che từng từ bảo toàn khoảng trắng (`sentenceEn.replace(/[a-zA-Z0-9]/g, "•")`), tự động xuống hàng 2-3 dòng theo khung thẻ. Bổ sung `overflow: hidden;`, `word-break: break-word;`, `overflow-wrap: anywhere;` trên thẻ để chống tràn viền tuyệt đối.
 
+
+### 3.8. Luyện gõ trực tiếp trên từng thẻ & Bộ lọc nhiều cấp độ CEFR lũy tiến (v=13)
+- **Tập tin chính:** `src/pages/Atlas.tsx`, `src/styles/app.css`.
+- **Cơ chế & Thay đổi:**
+  1. **Luyện tập gõ (Typing Practice) trực tiếp trên mỗi card:**
+     - Tích hợp nút bàn phím `<Keyboard size={13/15} />` trên từng thẻ từ/câu ở cả chế độ lưới (`VirtualGrid`) và danh sách (`VirtualList`).
+     - Khi bấm vào biểu tượng bàn phím, thẻ chuyển sang giao diện gõ ôn tập (`inline typing mode`).
+     - Hiển thị gợi ý nghĩa tiếng Việt (`w.zh` hoặc `sentenceZh`), các ký tự chưa gõ được che bằng dấu chấm giữa `·` (bảo tồn dấu cách và dấu câu `?`, `,`, `!`, `'` chuẩn xác theo phòng luyện gõ).
+     - Phản hồi bàn phím tức thì: âm thanh gõ phím `cue("key")`, ký tự gõ đúng tô màu đất nung (`is-ok`), ký tự gõ sai tô màu đỏ (`is-bad`), con trỏ nhấp nháy (`is-caret`).
+     - Khi gõ đúng 100%, phát âm thanh chúc mừng `cue("correct")` và tự động phát âm chuẩn UK của từ/câu.
+     - Hỗ trợ đóng nhanh bằng phím `Escape`, nút `X`, hoặc bấm lại vào icon bàn phím.
+  2. **Bộ lọc cấp độ CEFR thông minh (Cascading & Multi-select):**
+     - Khi chưa chọn cấp độ: bấm vào độ khó cao (như B1, B2) thì toàn bộ các cấp độ phía dưới (A1, A2...) tự động được chọn lũy tiến (`A1, A2, B1...`).
+     - Cho phép người dùng linh hoạt tích chọn hoặc bật/tắt riêng từng cấp độ tùy thích theo nhu cầu ôn luyện.
+     - Nút "Tất cả độ khó" cho phép khôi phục hiển thị toàn bộ danh sách.
+
 ## 4. Quy tắc vàng về tương thích WebKit / Safari iOS
 
 Khi chỉnh sửa mã nguồn, **TUYỆT ĐỐI TUÂN THỦ** các nguyên tắc sau để không làm sập ứng dụng trên iPhone/iPad:
