@@ -650,7 +650,7 @@ function VirtualGrid({
                 >
                   {showWord
                     ? (sentenceEn ? highlightHeadword(sentenceEn, w.word) : w.word)
-                    : "••••••••••••••••••••••••••••••••••••••••"}
+                    : (sentenceEn ? sentenceEn.replace(/[a-zA-Z0-9]/g, "•") : "•••••• ••••• ••••••• •••••• ••••••••")}
                 </p>
                 <p
                   className={`tile-sentence-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}
@@ -861,7 +861,7 @@ function VirtualList({
                 >
                   {showWord
                     ? (sentenceEn ? highlightHeadword(sentenceEn, w.word) : w.word)
-                    : "••••••••••••••••••••••••••••••••"}
+                    : (sentenceEn ? sentenceEn.replace(/[a-zA-Z0-9]/g, "•") : "•••••• ••••• ••••••• •••••• ••••••••")}
                 </span>
                 <span
                   className={`row-zh ${showWord ? (isPeeking ? "is-revealed" : "") : "is-masked"}`}

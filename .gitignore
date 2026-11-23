@@ -9,3 +9,8 @@ output/
 .DS_Store
 .playwright-cli/
 *.tsbuildinfo
+# The workspace control folder and the domains it fills are not part of the published product.
+dan_chu/
+ngoai_giao_cay_tre/
+
+*.bak

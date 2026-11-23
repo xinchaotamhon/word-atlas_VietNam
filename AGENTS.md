@@ -88,6 +88,13 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
     3. **Đặc biệt:** Mặt chữ tiếng Anh (`w.word` hoặc câu tiếng Anh) **VẪN GIỮ NGUYÊN TRẠNG THÁI BỊ ẨN** (`••••••`).
   - Giúp người học có thể kiểm tra thính giác và ký hiệu phiên âm trước mà không bị lộ chính tả tiếng Anh.
 
+
+### 3.7. Việt hóa 100% toàn bộ cơ sở dữ liệu & Che câu thông minh (v=12)
+- **Tập tin chính:** `src/pages/Atlas.tsx`, `src/styles/app.css`, `public/atlas/index.json`, `public/atlas/sentences-*.json`, `public/atlas/entries/*.json`.
+- **Cơ chế & Thay đổi:**
+  1. **Việt hóa 100% dữ liệu:** Dịch toàn bộ 7.298 định nghĩa từ, 7.298 câu ví dụ Hàng ngày, 7.298 câu ngữ cảnh IELTS, 24.722 cụm từ thường gặp (`col`), 7.280 mẹo ghi nhớ (`tip`), 6.295 nét nghĩa phụ (`senses`) và 19 chủ đề học tập sang tiếng Việt chuẩn, tự nhiên. Không còn ký tự tiếng Trung nào trong toàn bộ ứng dụng.
+  2. **Che câu thông minh (Smart Masking) & Khắc phục tràn viền:** Thay thế chuỗi 40 dấu chấm liền nhau cũ bằng cơ chế che từng từ bảo toàn khoảng trắng (`sentenceEn.replace(/[a-zA-Z0-9]/g, "•")`), tự động xuống hàng 2-3 dòng theo khung thẻ. Bổ sung `overflow: hidden;`, `word-break: break-word;`, `overflow-wrap: anywhere;` trên thẻ để chống tràn viền tuyệt đối.
+
 ## 4. Quy tắc vàng về tương thích WebKit / Safari iOS
 
 Khi chỉnh sửa mã nguồn, **TUYỆT ĐỐI TUÂN THỦ** các nguyên tắc sau để không làm sập ứng dụng trên iPhone/iPad:

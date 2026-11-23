@@ -2018,6 +2018,7 @@ code {
   box-shadow: var(--shadow-sm);
   will-change: transform;
   transition: box-shadow 0.35s var(--ease), border-color 0.3s;
+  overflow: hidden;
 }
 .tile:hover {
   border-color: var(--line-strong);
@@ -4362,12 +4363,14 @@ a:hover .mark-needle,
   gap: 4px;
   min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 .tile-sentence-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+  min-width: 0;
 }
 .tile-word-sub {
   font: 700 13px/1.2 var(--serif);
@@ -4375,6 +4378,7 @@ a:hover .mark-needle,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 .tile-sentence-en {
   font: 500 12px/1.35 var(--serif);
@@ -4385,15 +4389,20 @@ a:hover .mark-needle,
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   cursor: pointer;
   min-height: 48px;
 }
 .tile-sentence-en.is-masked {
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   color: var(--ink-3);
-  opacity: 0.5;
+  opacity: 0.55;
   font-family: var(--sans);
   font-size: 11px;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 .tile-sentence-en.is-revealed {
   color: var(--ink);
