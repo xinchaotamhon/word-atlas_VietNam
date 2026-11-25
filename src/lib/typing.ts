@@ -42,6 +42,39 @@ export function typingDelta(previous: string, next: string, target: string) {
   return { total: added.length, correct };
 }
 
+/** What an untyped position shows: length and punctuation stay, letters never do. */
+export function maskedCharacter(ch: string) {
+  if (ch === " ") return " ";
+  return /[A-Za-z0-9]/.test(ch) ? "·" : ch;
+}
+
+export interface PromptCell {
+  /** The character drawn at this position. */
+  ch: string;
+  /** "" | "is-ok" | "is-bad" | "is-caret" */
+  cls: string;
+}
+
+/**
+ * One row of the recall prompt. The answer is never printed for a position the learner
+ * has not filled: a wrong keystroke shows the learner's own letter in red (`is-bad`),
+ * not the expected one, so the exercise cannot be completed by copying the screen.
+ * `revealed` is the explicit "Xem đáp án" state, where the target is shown plain.
+ */
+export function promptCells(target: string, typed: string, revealed = false): PromptCell[] {
+  const want = Array.from(clean(target));
+  const got = Array.from(clean(typed));
+  return want.map((ch, k) => {
+    if (revealed) return { ch, cls: "" };
+    const t = got[k];
+    if (t === undefined) return { ch: maskedCharacter(ch), cls: k === got.length ? "is-caret" : "" };
+    // Correct: draw the target's character (keeps the name's own capitalisation).
+    if (same(t, ch)) return { ch, cls: "is-ok" };
+    // Wrong: draw what the learner actually typed, never the answer.
+    return { ch: t, cls: "is-bad" };
+  });
+}
+
 /** Standard WPM uses 5 characters per word, not the number of vocabulary cards. */
 export function typingMetrics(
   correctCharacters: number,

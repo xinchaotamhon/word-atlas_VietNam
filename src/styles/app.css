@@ -2094,13 +2094,6 @@ code {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tile-lv {
-  font: 700 10px var(--mono);
-  color: var(--lv);
-  background: var(--lv-soft);
-  padding: 3px 6px;
-  border-radius: 6px;
-}
 .tile.is-learning .illo::before,
 .tile.is-mastered .illo::before {
   content: "";
@@ -4601,6 +4594,85 @@ a:hover .mark-needle,
   animation: caret 1s steps(1) infinite;
 }
 
+/* "Xem đáp án": the one deliberate way to print the target. */
+.tile-typing-reveal,
+.row-typing-reveal {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--line) 45%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.tile-typing-reveal:hover,
+.row-typing-reveal:hover {
+  color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+.tile-typing-prompt.is-answer,
+.row-typing-prompt.is-answer {
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+.row-typing-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.row-typing-hint-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Picture cover: study a card with no illustration as a cue
+   ========================================================================== */
+
+.illo-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: inherit;
+  cursor: pointer;
+  color: var(--ink-3);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--line) 55%, transparent) 0 7px,
+      transparent 7px 14px
+    ),
+    color-mix(in oklab, var(--card) 92%, #ffffff);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.illo-veil:hover {
+  color: var(--terra);
+}
+.illo-veil-mark {
+  font: 600 clamp(11px, 22cqi, 30px) / 1 var(--serif);
+  opacity: 0.45;
+}
+.illo-veil-hint {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  opacity: 0.75;
+}
+.illo.row-art .illo-veil-hint {
+  display: none;
+}
+
 .tile-typing-success {
   font-size: 11px;
   font-weight: 600;
@@ -4623,6 +4695,15 @@ a:hover .mark-needle,
   height: 100%;
   font-size: 16px;
   cursor: text;
+}
+
+/* The invisible input covers the whole card so a tap anywhere focuses it; the
+   controls drawn on top of it must still be reachable with a mouse. */
+.tile-typing-header,
+.tile-typing-prompt,
+.tile-typing-success {
+  position: relative;
+  z-index: 2;
 }
 
 /* List Inline Typing Container */
@@ -4697,4 +4778,395 @@ a:hover .mark-needle,
   font-size: 16px;
   cursor: text;
 }
+.row-typing-hint,
+.row-typing-prompt,
+.row-typing-success {
+  position: relative;
+  z-index: 2;
+}
 
+
+/* ==========================================================================
+   Pronunciation practice: record, then hear it beside the native recording
+   ========================================================================== */
+
+.voice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+.voice-word {
+  margin: 2px 0 0;
+  font: 600 30px/1.2 var(--serif);
+  font-variation-settings: "opsz" 40;
+  color: var(--ink-1);
+}
+.voice-ipa {
+  margin: 0;
+  color: var(--ochre);
+  font-size: 15px;
+}
+.voice-sentence {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.voice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+.voice-rec {
+  background: color-mix(in oklab, var(--terra) 14%, transparent);
+  color: var(--terra);
+  border: 1px solid color-mix(in oklab, var(--terra) 40%, transparent);
+}
+.voice-rec:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--terra) 22%, transparent);
+}
+.voice-rec.is-on {
+  background: var(--terra);
+  color: #fff;
+  border-color: var(--terra);
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+@keyframes voice-pulse {
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--terra) 12%, transparent);
+  }
+}
+.voice-note {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.voice-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in oklab, #dc2626 12%, transparent);
+  color: #f2b8b5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Microphone action on a card, beside the keyboard button */
+.tile-voice-btn:hover,
+.row-voice-btn:hover {
+  color: var(--terra);
+  border-color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 16%, transparent);
+}
+
+/* Entry detail: the same practice, folded away until asked for */
+.voice-block {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+}
+.voice-block > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  list-style: none;
+  color: var(--ink-2);
+}
+.voice-block > summary::-webkit-details-marker {
+  display: none;
+}
+.voice-block[open] > summary {
+  margin-bottom: 10px;
+  color: var(--terra);
+}
+
+/* ==========================================================================
+   Machine verdict on pronunciation: right, nearly right, or which sound was wrong
+   ========================================================================== */
+
+.say {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.say-mic.is-on {
+  background: var(--terra);
+  color: #fff;
+  border-color: var(--terra);
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+.say-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--card) 82%, transparent);
+}
+.say-score {
+  font: 600 34px/1 var(--serif);
+  font-variation-settings: "opsz" 40;
+  min-width: 52px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.say-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.say-label {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+}
+.say-heard {
+  font-weight: 500;
+  color: var(--ink-3);
+  font-size: 13.5px;
+}
+.say-hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.say-words {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-3);
+}
+.say-words .is-ok {
+  color: var(--ink-1);
+}
+.say-words .is-miss {
+  color: #e0524a;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-underline-offset: 3px;
+}
+.say-card.is-exact {
+  border-color: color-mix(in oklab, #16a34a 45%, transparent);
+  background: color-mix(in oklab, #16a34a 10%, var(--card));
+}
+.say-card.is-exact .say-score,
+.say-card.is-exact .say-label {
+  color: #4ade80;
+}
+.say-card.is-near {
+  border-color: color-mix(in oklab, var(--ochre) 50%, transparent);
+  background: color-mix(in oklab, var(--ochre) 10%, var(--card));
+}
+.say-card.is-near .say-score,
+.say-card.is-near .say-label {
+  color: var(--ochre);
+}
+.say-card.is-wrong {
+  border-color: color-mix(in oklab, var(--terra) 50%, transparent);
+  background: color-mix(in oklab, var(--terra) 10%, var(--card));
+}
+.say-card.is-wrong .say-score,
+.say-card.is-wrong .say-label {
+  color: var(--terra);
+}
+
+/* Live microphone level: the screen never just says "listening" and stops */
+.say-listen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+}
+.say-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--line) 60%, transparent);
+  overflow: hidden;
+}
+.say-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--sage, #7F9B77), var(--ochre));
+  transition: width 0.08s linear;
+}
+.voice-note.is-warn {
+  color: #e0a24a;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Pronunciation check inside the card: one tap, no panel in between
+   ========================================================================== */
+
+.tile-inline-say,
+.row-inline-say {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+}
+.tile-say-word {
+  font: 600 17px/1.2 var(--serif);
+  color: var(--ink-1);
+  word-break: break-word;
+}
+.tile-say-ipa {
+  font-size: 12.5px;
+  color: var(--ochre);
+}
+.tile-say-sentence {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.say-compact {
+  gap: 5px;
+}
+.say-compact .say-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.say-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--line) 35%, transparent);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.say-btn:hover:not(:disabled) {
+  color: var(--terra);
+  border-color: var(--terra);
+  background: color-mix(in oklab, var(--terra) 14%, transparent);
+}
+.say-btn:disabled {
+  opacity: 0.45;
+}
+.say-btn.is-primary {
+  background: var(--terra);
+  border-color: var(--terra);
+  color: #fff;
+}
+.say-btn.is-live {
+  background: var(--terra);
+  border-color: var(--terra);
+  color: #fff;
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+.say-line {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.say-line.is-warn {
+  color: #e0a24a;
+  font-weight: 600;
+}
+.say-verdict b {
+  font-weight: 700;
+}
+.say-verdict.is-exact {
+  color: #4ade80;
+}
+.say-verdict.is-near {
+  color: var(--ochre);
+}
+.say-verdict.is-wrong {
+  color: var(--terra);
+}
+.say-compact .say-meter {
+  height: 6px;
+}
+
+/* A list row is only 60 px tall, so its check floats just below it instead of being clipped */
+.row.is-saying-row {
+  z-index: 10;
+  background: var(--card);
+}
+.row-inline-say {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  box-shadow: 0 18px 34px -18px rgba(20, 24, 38, 0.55);
+}
+
+/* The card only has room for a few short lines: keep the panel inside it */
+.say-compact .say-line {
+  font-size: 11px;
+  line-height: 1.3;
+}
+.say-line.is-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.say-verdict.is-clamp {
+  -webkit-line-clamp: 3;
+}
+.tile-inline-say .say-compact {
+  gap: 3px;
+}
+
+/* The compact row must never wrap: four buttons do not fit a 188 px card */
+.say-compact .say-row {
+  flex-wrap: nowrap;
+  min-width: 0;
+  gap: 4px;
+}
+.say-compact .say-btn {
+  padding: 3px 7px;
+  font-size: 11.5px;
+  flex: none;
+}
+.say-compact .say-btn.is-primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tile-inline-say,
+.row-inline-say {
+  min-width: 0;
+}
+.tile-say-word {
+  font-size: 15px;
+  line-height: 1.15;
+}

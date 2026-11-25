@@ -14,6 +14,9 @@ export function Illustration({
   className = "",
   eager = false,
   alt,
+  veiled = false,
+  veilHint = "Chạm để xem",
+  onVeilClick,
 }: {
   src: string | null;
   word: string;
@@ -21,6 +24,11 @@ export function Illustration({
   className?: string;
   eager?: boolean;
   alt?: string;
+  /** Cover the picture without unloading it, so it is back in one frame when uncovered. */
+  veiled?: boolean;
+  veilHint?: string;
+  /** Tap on the cover: the caller decides whether that uncovers for a second or opens the card. */
+  onVeilClick?: (e: React.MouseEvent) => void;
 }) {
   const isPrecached = src ? loadedUrls.has(src) : false;
   const [state, setState] = useState<"loading" | "ok" | "error">(isPrecached ? "ok" : "loading");
@@ -28,7 +36,7 @@ export function Illustration({
   const isLoaded = showImg && (isPrecached || state === "ok");
 
   return (
-    <figure className={`illo ${isLoaded ? "is-loaded" : ""} ${isPrecached ? "is-cached" : ""} ${className}`}>
+    <figure className={`illo ${isLoaded ? "is-loaded" : ""} ${isPrecached ? "is-cached" : ""} ${veiled ? "is-veiled" : ""} ${className}`}>
       {showImg ? (
         <img
           src={src}
@@ -48,6 +56,12 @@ export function Illustration({
           <span className="plate-word">{word}</span>
           <i className="plate-rule" />
         </div>
+      )}
+      {veiled && (
+        <span className="illo-veil" onClick={onVeilClick} aria-hidden={!onVeilClick}>
+          <span className="illo-veil-mark">?</span>
+          <span className="illo-veil-hint">{veilHint}</span>
+        </span>
       )}
     </figure>
   );

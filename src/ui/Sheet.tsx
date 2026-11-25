@@ -1,7 +1,17 @@
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
-/** Accessible dialog: centered panel on desktop, bottom sheet on phones. */
+/**
+ * Accessible dialog: centered panel on desktop, bottom sheet on phones.
+ *
+ * Rendered through a portal on `document.body`, never in place. A `.page` element keeps
+ * `transform: matrix(...)` from its `page-in` animation, and a transform on an ancestor turns
+ * `position: fixed` into "fixed to that ancestor": a sheet opened from inside a page then lands
+ * at the bottom of the *document*, thousands of pixels below the fold, with only its blurred
+ * backdrop on screen (measured 2026-11-24 on `.page.atlas`: root 2261 px tall, panel at 1047 px
+ * in a 928 px viewport, while Playwright's `isVisible()` still said `true`).
+ */
 export function Sheet({
   open,
   onClose,
@@ -50,7 +60,7 @@ export function Sheet({
     };
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="sheet-root" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={panel} className={`sheet ${wide ? "sheet-wide" : ""} ${className}`} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         <span className="sheet-grip" aria-hidden="true" />
@@ -59,6 +69,7 @@ export function Sheet({
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, Lightbulb, Share2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, Lightbulb, Mic, Share2 } from "lucide-react";
 import { useEffect } from "react";
 import type { Entry, WordRef } from "../atlas/types";
 import { useAtlas } from "../atlas/context";
@@ -8,6 +8,7 @@ import { formatInterval, isMastered } from "../store/srs";
 import { toggleBookmark, useStore } from "../store/store";
 import { Illustration } from "./Illustration";
 import { Speak } from "./Speak";
+import { VoiceLab } from "./PronounceCheck";
 import { shareWord } from "./share";
 import { openWord } from "../lib/router";
 
@@ -202,6 +203,20 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
             <Lightbulb size={17} strokeWidth={1.8} />
             <p>{entry.tip}</p>
           </aside>
+        )}
+
+        {mode === "detail" && (
+          <details className="voice-block">
+            <summary className="eyebrow">
+              <Mic size={15} /> Luyện phát âm từ này
+            </summary>
+            <VoiceLab
+              word={entry.w}
+              ipa={entry.uk || entry.us}
+              sentence={entry.ex[0]?.en ?? null}
+              nativeSrc={atlas.audio(entry, "uk")}
+            />
+          </details>
         )}
 
         {entry.note && <p className="usage-note">Lưu ý cách dùng: {entry.note}</p>}

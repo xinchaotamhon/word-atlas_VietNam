@@ -60,6 +60,10 @@ export interface Settings {
   ambience: "off" | "stars" | "rain" | "sea" | "forest" | "fire" | "voyage" | "cafe";
   ambienceVolume: number;
   splash: boolean;
+  /** Asked once, ever: the learner agreed that the voice goes to the browser's speech service. */
+  sayConsent: boolean;
+  /** Hide every illustration, so a card can be recalled with no picture as a cue. */
+  hideArt: boolean;
 }
 
 export const defaultSettings: Settings = {
@@ -76,6 +80,8 @@ export const defaultSettings: Settings = {
   ambience: "stars",
   ambienceVolume: 0.45,
   splash: true,
+  hideArt: false,
+  sayConsent: false,
 };
 
 export const emptyProgress = (datasetId: string): Progress => ({
@@ -173,6 +179,8 @@ export function sanitizeSettings(v: unknown): Settings {
   if (["off", "stars", "rain", "sea", "forest", "fire", "voyage", "cafe"].includes(v.ambience as string)) s.ambience = v.ambience as Settings["ambience"];
   if (num(v.ambienceVolume, 0, 1)) s.ambienceVolume = v.ambienceVolume as number;
   if (typeof v.splash === "boolean") s.splash = v.splash;
+  if (typeof v.hideArt === "boolean") s.hideArt = v.hideArt;
+  if (typeof v.sayConsent === "boolean") s.sayConsent = v.sayConsent;
   return s;
 }
 

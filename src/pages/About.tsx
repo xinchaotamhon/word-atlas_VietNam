@@ -1,6 +1,6 @@
 import { ArrowUpRight, Database, Github, Heart } from "lucide-react";
 import { useAtlas } from "../atlas/context";
-import { REPO_URL } from "../config";
+import { REPO_URL, UPSTREAM_AUTHOR, UPSTREAM_URL } from "../config";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -17,6 +17,13 @@ export function About() {
             Word Atlas tuyển chọn 8.000 từ vựng IELTS Reading thành {atlas.count.toLocaleString()} mục từ. Mỗi từ kèm một tranh minh họa độc bản, một câu ví dụ đời sống, một câu ví dụ học thuật IELTS, cùng phát âm chuẩn Anh/Mỹ, cụm từ thông dụng và lưu ý tránh nhầm lẫn. Mỗi từ học xong là một vì sao tỏa sáng trên bầu trời của bạn.
           </p>
           <p className="lede">Ứng dụng hoàn toàn miễn phí, mã nguồn mở, không cần đăng ký tài khoản. Mã nguồn theo giấy phép MIT, kho dữ liệu theo CC BY 4.0, ai cũng có thể tự do sử dụng.</p>
+          <p className="lede">
+            Đây là bản Việt hóa và nâng cấp, dựa trên dự án gốc <b>word-atlas</b> của tác giả{" "}
+            <a className="link" href={UPSTREAM_URL} target="_blank" rel="noreferrer">
+              @{UPSTREAM_AUTHOR} <ArrowUpRight size={13} />
+            </a>{" "}
+            (giấy phép MIT). Xin ghi công tác giả gốc cho ý tưởng, tranh minh họa và kho từ vựng ban đầu.
+          </p>
           <div className="about-actions">
             <a className="btn btn-primary" href={REPO_URL} target="_blank" rel="noreferrer">
               <Github size={18} /> Xem trên GitHub
