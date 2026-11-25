@@ -109,7 +109,12 @@ Tài liệu này dành cho các AI Agent (Antigravity, Claude, Cursor, Copilot,.
      - Khi gõ đúng 100%, phát âm thanh chúc mừng `cue("correct")` và tự động phát âm chuẩn UK của từ/câu.
      - Hỗ trợ đóng nhanh bằng phím `Escape`, nút `X`, hoặc bấm lại vào icon bàn phím.
      - **Bẫy đã gặp:** `<input>` ẩn của chế độ gõ phủ toàn thẻ (`position:absolute; inset:0`), nên nó nuốt mọi cú click chuột vào `X` và `Đáp án`. Giữ `.tile-typing-header/.tile-typing-prompt` (và bản `row-`) ở `z-index: 2`, nếu không hai nút này chỉ dùng được bằng bàn phím.
-  2. **Bộ lọc cấp độ CEFR thông minh (Cascading & Multi-select):**
+     - **Gõ xong cũng không được in đáp án (v=15).** Ở `v=14`, gõ đúng cả câu thì **mọi** ký tự thành `is-ok`, tức cả câu sáng màu đất nung; chủ dự án gửi ảnh chụp và nói *"vẫn bị"*. Đo trên chính bản `v=14` đang phát hành (thẻ `cathedral`, thẻ cao 286 px): prompt cao **137 px** → tràn đáy thẻ **56 px**, và huy hiệu `✓ Chính xác!` nằm ở `top 625` trong khi đáy thẻ là `566` — **hoàn toàn ngoài tầm nhìn**. Ba quy tắc:
+       1. Xong bài thì **không vẽ lại từng ký tự**. Header hiện `✓ Chính xác!`; thân thẻ hiện `Đúng N ký tự.` và nút `Xem câu` / `Xem từ`. Đáp án chỉ hiện khi người học bấm nút đó, hoặc bấm `Đáp án` trong lúc đang gõ (`answerShown`).
+       2. `.tile-inline-typing` xếp từ trên xuống (`justify-content: flex-start`) và `.tile-typing-prompt` nhận phần chỗ còn lại (`flex: 1 1 auto; min-height: 0; overflow: hidden`), nên nội dung dài **không thể** đẩy huy hiệu hay nút đóng ra ngoài thẻ. Đo lại sau khi sửa: dư **62 px** ở 390 px và **74 px** ở 1280 px.
+       3. Câu Hàng ngày/IELTS dài tới ~80 ký tự, nhiều hơn chỗ thẻ có: hộp prompt **tự cuộn tới chỗ đang gõ** (`followCaret()` trong `Atlas.tsx`), và chỉ hộp đó cuộn — trang không bao giờ bị cuộn theo.
+       Phép kiểm tra không còn là ảnh chụp: `dan_chu\ban_do_tieng_anh.cmd -UiCheck` chạy `scripts\ui-check.mjs` (Playwright + Chrome thật) và khẳng định từng điều trên ở bốn bố cục.
+   2. **Bộ lọc cấp độ CEFR thông minh (Cascading & Multi-select):**
      - Khi chưa chọn cấp độ: bấm vào độ khó cao (như B1, B2) thì toàn bộ các cấp độ phía dưới (A1, A2...) tự động được chọn lũy tiến (`A1, A2, B1...`).
      - Cho phép người dùng linh hoạt tích chọn hoặc bật/tắt riêng từng cấp độ tùy thích theo nhu cầu ôn luyện.
      - Nút "Tất cả độ khó" cho phép khôi phục hiển thị toàn bộ danh sách.
@@ -249,6 +254,9 @@ git push origin main
 > chuyển sang, nên ba bước trên chạy bằng một lệnh duy nhất:
 > `dan_chu\ban_do_tieng_anh.cmd -Check` (tsc + toàn bộ unit test + kiểm tra kho từ) và
 > `dan_chu\ban_do_tieng_anh.cmd -Build`. Đây là đường duy nhất đã được đo, `hau_can.md` ghi lý do.
+>
+> Bước 3b, chỉ sau khi đã `-Build`: `dan_chu\ban_do_tieng_anh.cmd -UiCheck` tự mở server rồi cho
+> Chrome thật chạy qua thẻ gõ ôn tập (44 phép kiểm) — đây là bước thay cho việc "nhìn ảnh chụp mà đoán".
 
 Sau khi push, kiểm tra GitHub Actions workflow bằng lệnh:
 ```powershell

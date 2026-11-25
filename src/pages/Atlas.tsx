@@ -92,6 +92,33 @@ function highlightHeadword(sentence: string, word: string): React.ReactNode {
   );
 }
 
+/**
+ * Keep the position the learner is filling inside the visible part of the prompt box.
+ *
+ * A daily/IELTS sentence is up to ~80 characters, which is three or four lines in a 214 px
+ * card - more than the card has room for. Without this, the prompt is simply cut off and the
+ * learner loses sight of the character they are typing. The box scrolls by itself; the page
+ * never moves.
+ */
+function followCaret(box: HTMLElement | null) {
+  if (!box) return;
+  const caret =
+    box.querySelector<HTMLElement>("span.is-caret") ||
+    (box.lastElementChild as HTMLElement | null);
+  if (!caret) return;
+  if (box.scrollHeight > box.clientHeight + 1) {
+    const top = caret.offsetTop;
+    const bottom = top + caret.offsetHeight;
+    if (top < box.scrollTop) box.scrollTop = top;
+    else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight;
+  } else if (box.scrollWidth > box.clientWidth + 1) {
+    const left = caret.offsetLeft;
+    const right = left + caret.offsetWidth;
+    if (left < box.scrollLeft) box.scrollLeft = left;
+    else if (right > box.scrollLeft + box.clientWidth) box.scrollLeft = right - box.clientWidth;
+  }
+}
+
 export function AtlasPage({
   route,
 }: {
@@ -555,6 +582,8 @@ function VirtualGrid({
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [answerShown, setAnswerShown] = useState<boolean>(false);
   const typingInputRef = useRef<HTMLInputElement>(null);
+  /** The box the caret lives in: it scrolls by itself when the target is longer than the card. */
+  const typingPromptRef = useRef<HTMLDivElement>(null);
 
   // Inline pronunciation check: one tap on the card, no panel in between.
   const [sayingId, setSayingId] = useState<string | null>(null);
@@ -577,6 +606,7 @@ function VirtualGrid({
       setTypedValue("");
       setIsSuccess(false);
       setAnswerShown(false);
+      requestAnimationFrame(() => followCaret(typingPromptRef.current));
       setTimeout(() => typingInputRef.current?.focus(), 40);
     }
   };
@@ -602,6 +632,7 @@ function VirtualGrid({
     const d = typingDelta(typedValue, next, target);
     if (d.total > 0) void cue("key");
     setTypedValue(next);
+    requestAnimationFrame(() => followCaret(typingPromptRef.current));
     if (clean(next).length >= clean(target).length && same(next.trimEnd(), target)) {
       setIsSuccess(true);
       void cue("correct");
@@ -769,6 +800,11 @@ function VirtualGrid({
                   <span className="tile-typing-hint" title={hintZh}>
                     {hintZh}
                   </span>
+                  {isSuccess && (
+                    <span className="tile-typing-done" role="status">
+                      ✓ Chính xác!
+                    </span>
+                  )}
                   {!isSuccess && !answerShown && (
                     <span
                       className="tile-typing-reveal"
@@ -810,16 +846,42 @@ function VirtualGrid({
                     <X size={12} />
                   </span>
                 </div>
-                <div className={`tile-typing-prompt ${answerShown ? "is-answer" : ""}`} lang="en">
-                  {promptCells(target, typedValue, answerShown).map((cell, k) => (
-                    <span key={k} className={cell.cls}>
-                      {cell.ch}
+                {isSuccess && !answerShown ? (
+                  // Finishing the exercise must not paint the answer across the card: the
+                  // learner sees that it was right, and asks for the sentence if they want it.
+                  <div className="tile-typing-done-line">
+                    <span>Đúng {Array.from(clean(target)).length} ký tự.</span>
+                    <span
+                      className="tile-typing-reveal"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAnswerShown(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.stopPropagation();
+                          setAnswerShown(true);
+                        }
+                      }}
+                      title="Xem lại câu vừa gõ"
+                      aria-label="Xem lại câu vừa gõ"
+                    >
+                      {isSentence ? "Xem câu" : "Xem từ"}
                     </span>
-                  ))}
-                </div>
-                {isSuccess && (
-                  <div className="tile-typing-success">
-                    <span>✓ Chính xác!</span>
+                  </div>
+                ) : (
+                  <div
+                    ref={typingPromptRef}
+                    className={`tile-typing-prompt ${answerShown ? "is-answer" : ""}`}
+                    lang="en"
+                  >
+                    {promptCells(target, typedValue, answerShown).map((cell, k) => (
+                      <span key={k} className={cell.cls}>
+                        {cell.ch}
+                      </span>
+                    ))}
                   </div>
                 )}
                 <input
@@ -1059,6 +1121,8 @@ function VirtualList({
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [answerShown, setAnswerShown] = useState<boolean>(false);
   const typingInputRef = useRef<HTMLInputElement>(null);
+  /** The box the caret lives in: it scrolls by itself when the target is longer than the card. */
+  const typingPromptRef = useRef<HTMLDivElement>(null);
 
   // Inline pronunciation check: one tap on the card, no panel in between.
   const [sayingId, setSayingId] = useState<string | null>(null);
@@ -1081,6 +1145,7 @@ function VirtualList({
       setTypedValue("");
       setIsSuccess(false);
       setAnswerShown(false);
+      requestAnimationFrame(() => followCaret(typingPromptRef.current));
       setTimeout(() => typingInputRef.current?.focus(), 40);
     }
   };
@@ -1106,6 +1171,7 @@ function VirtualList({
     const d = typingDelta(typedValue, next, target);
     if (d.total > 0) void cue("key");
     setTypedValue(next);
+    requestAnimationFrame(() => followCaret(typingPromptRef.current));
     if (clean(next).length >= clean(target).length && same(next.trimEnd(), target)) {
       setIsSuccess(true);
       void cue("correct");
@@ -1258,6 +1324,11 @@ function VirtualList({
               >
                 <div className="row-typing-hint" title={hintZh}>
                   <span className="row-typing-hint-text">{hintZh}</span>
+                  {isSuccess && (
+                    <span className="row-typing-done" role="status">
+                      ✓ Chính xác!
+                    </span>
+                  )}
                   {!isSuccess && !answerShown && (
                     <span
                       className="row-typing-reveal"
@@ -1274,16 +1345,34 @@ function VirtualList({
                     </span>
                   )}
                 </div>
-                <div className={`row-typing-prompt ${answerShown ? "is-answer" : ""}`} lang="en">
-                  {promptCells(target, typedValue, answerShown).map((cell, k) => (
-                    <span key={k} className={cell.cls}>
-                      {cell.ch}
+                {isSuccess && !answerShown ? (
+                  <div className="row-typing-done-line">
+                    <span>Đúng {Array.from(clean(target)).length} ký tự.</span>
+                    <span
+                      className="row-typing-reveal"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAnswerShown(true);
+                      }}
+                      title="Xem lại câu vừa gõ"
+                      aria-label="Xem lại câu vừa gõ"
+                    >
+                      {isSentence ? "Xem câu" : "Xem từ"}
                     </span>
-                  ))}
-                </div>
-                {isSuccess && (
-                  <div className="row-typing-success">
-                    <span>✓ Chính xác!</span>
+                  </div>
+                ) : (
+                  <div
+                    ref={typingPromptRef}
+                    className={`row-typing-prompt ${answerShown ? "is-answer" : ""}`}
+                    lang="en"
+                  >
+                    {promptCells(target, typedValue, answerShown).map((cell, k) => (
+                      <span key={k} className={cell.cls}>
+                        {cell.ch}
+                      </span>
+                    ))}
                   </div>
                 )}
                 <input
@@ -1386,7 +1475,14 @@ function VirtualList({
               role="button"
               tabIndex={0}
               onClick={(e) => toggleTyping(w, e)}
-              title={isTyping ? "Tắt luyện gõ" : "Luyện gõ từ này (Đánh chữ lại)"}
+              title={
+                isTyping
+                  ? "Tắt luyện gõ"
+                  : isSentence
+                    ? "Luyện gõ câu này (Đánh chữ lại)"
+                    : "Luyện gõ từ này (Đánh chữ lại)"
+              }
+              aria-label={isSentence ? "Luyện gõ câu này" : "Luyện gõ từ này"}
             >
               <Keyboard size={15} />
             </span>
